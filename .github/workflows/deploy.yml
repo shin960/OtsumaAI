@@ -36,6 +36,22 @@ jobs:
         run: |
           rm -rf dist
           mkdir -p dist
+          cat > dist/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="ja">
+          <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>AI基礎　グループ演習</title>
+          </head>
+          <body>
+              <h2><a href="./A/index.html">A:ジェミニ</a></h2>
+              <h2><a href="./D/apurigroup.html">D:でぃ～</a></h2>
+              <h2><a href="./F/index.html">F:海鮮丼</a></h2>
+              <h2><a href="./notebooks/">G:みじんこ</a></h2>
+          </body>
+          </html>
+          EOF
           jupyter lite build --contents notebooks --output-dir dist/notebooks
 
       - name: Upload artifact
