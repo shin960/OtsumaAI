@@ -1,0 +1,99 @@
+body{
+    margin:0;
+    background:#fff8ef;
+    font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+}
+
+.container{
+    width:360px;
+    margin:40px auto;
+    padding:30px;
+    background:white;
+    border-radius:15px;
+    box-shadow:0 0 15px rgba(0,0,0,.2);
+}
+
+h1{
+    text-align:center;
+    font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+}
+
+label{
+    display:block;
+    margin-top:15px;
+}
+
+select{
+    width:100%;
+    padding:10px;
+    font-size:16px;
+    margin-top:5px;
+    border-radius:10px;
+    font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    margin-top:20px;
+
+    font-size:22px;
+    font-weight:bold;
+
+    font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+
+    background:#ff8fab;
+    color:white;
+
+    border:none;
+    border-radius:30px;
+
+    cursor:pointer;
+
+    box-shadow:0 4px 8px rgba(255,143,171,0.4);
+
+    transition:0.2s;
+}
+
+button:hover{
+    opacity:.85;
+    transform:translateY(-2px);
+}
+
+button:active{
+    transform:translateY(1px);
+}
+
+
+#result{
+    margin-top:25px;
+    text-align:center;
+
+    font-size:22px;
+    font-weight:bold;
+
+    color:#ff8fab;
+
+    font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+
+    transition:0.3s;
+}
+
+
+/* 季節ごとの結果表示カラー */
+
+.container:has(#season option[value="春"]:checked) #result{
+    color:#ff69a6;
+}
+
+.container:has(#season option[value="夏"]:checked) #result{
+    color:#4fc3f7;
+}
+
+.container:has(#season option[value="秋"]:checked) #result{
+    color:#f39c12;
+}
+
+.container:has(#season option[value="冬"]:checked) #result{
+    color:#7f8c8d;
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>夜ごはん提案アプリ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>🍽 夜ごはん提案アプリ</h1>
+
+    <label>季節</label>
+    <select id="season">
+        <option>春</option>
+        <option>夏</option>
+        <option>秋</option>
+        <option>冬</option>
+    </select>
+
+    <label>天気</label>
+    <select id="weather">
+        <option>晴れ</option>
+        <option>曇り</option>
+        <option>雨</option>
+        <option>雪</option>
+    </select>
+
+    <label>気分</label>
+    <select id="mood">
+    <option>がっつり食べたい</option>
+    <option>さっぱり食べたい</option>
+    <option>温まりたい</option>
+    <option>疲れている</option>
+    <option>ご褒美気分</option>
+    </select>
+
+    <button onclick="suggestMenu()">
+        今日の夜ごはんを提案
+    </button>
+
+    <div id="result"></div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
