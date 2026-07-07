@@ -1,0 +1,1031 @@
+<!-- 
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>世界のマイナー料理クイズ（ボリュームアップ版）</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            text-align: center;
+            border: 1px solid #333;
+        }
+        h1 {
+            color: #ffd43b;
+            font-size: 24px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(255, 212, 59, 0.3);
+        }
+        .progress {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+        .dish-img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: #333;
+        }
+        .dish-name {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+        .dish-country {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+        .question {
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #ffd43b;
+        }
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+            text-align: left;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .choice-label {
+            display: flex;
+            align-items: center;
+            background-color: #2a2a2a;
+            border: 2px solid #444;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .choice-label:hover {
+            background-color: #3a3a3a;
+            border-color: #666;
+        }
+        .choice-label input {
+            margin-right: 15px;
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+        .choice-label.correct {
+            border-color: #2ecc71;
+            background-color: rgba(46, 204, 113, 0.2);
+        }
+        .choice-label.incorrect {
+            border-color: #e74c3c;
+            background-color: rgba(231, 76, 60, 0.2);
+        }
+        .action-btn {
+            background-color: #ffd43b;
+            color: #121212;
+            border: none;
+            padding: 12px 40px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+            transition: background-color 0.2s;
+        }
+        .action-btn:hover {
+            background-color: #ffe066;
+        }
+        .result-message {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            min-height: 30px;
+            line-height: 1.6;
+            text-align: left;
+            background: #252525;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌍 世界のマイナー料理食材クイズ</h1>
+    <div id="progress" class="progress">第 1 問 / 全 10 問</div>
+    
+    <div id="quiz-area">
+        <img id="dish-image" class="dish-img" src="" alt="料理の画像">
+        <div id="dish-name" class="dish-name">料理名</div>
+        <div id="dish-country" class="dish-country">国名</div>
+        
+        <div class="question">使われている食材を「すべて」選んでね！</div>
+        
+        <div class="choices-container" id="choices-container"></div>
+        
+        <button id="submit-button" class="action-btn" onclick="submitAnswer()">回答する</button>
+        <div id="result-message" class="result-message"></div>
+        <button id="next-button" class="action-btn" style="display: none;" onclick="nextQuestion()">次の問題へ</button>
+    </div>
+</div>
+
+<script>
+    // 厳選した10問のクイズデータ
+    const quizData = [
+        {
+            name: "セビチェ (Ceviche)",
+            country: "ペルー共和国 🇵🇪",
+            image: "https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600&auto=format&fit=crop",
+            choices: ["白身魚", "レモン・ライム", "牛肉", "タマネギ"],
+            answers: ["白身魚", "レモン・ライム", "タマネギ"],
+            info: "セビチェは、生の魚介類に刻んだタマネギを合わせ、柑橘類のジュースでマリネしたペルーの国民的料理。お肉は使いません！"
+        },
+        {
+            name: "ガパオライス (Phat Kaphrao)",
+            country: "タイ王国 🇹🇭",
+            image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&auto=format&fit=crop",
+            choices: ["ホーリーバジル", "ひき肉", "パクチー", "唐辛子"],
+            answers: ["ホーリーバジル", "ひき肉", "唐辛子"],
+            info: "ガパオとは「ホーリーバジル」のこと。ひき肉と唐辛子、バジルを炒めます。日本ではパクチーが入っているイメージが強いですが、本場では基本入れません。"
+        },
+        {
+            name: "ハカール (Hákarl)",
+            country: "アイスランド共和国 🇮🇸",
+            image: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600&auto=format&fit=crop",
+            choices: ["サメの肉", "ジャガイモ", "塩", "トナカイの肉"],
+            answers: ["サメの肉"],
+            info: "サメの肉を発酵させて乾燥させたアイスランドの伝統料理。強烈なアンモニア臭が特徴で、調味料などもほぼ使わずサメ肉単体を熟成させます。"
+        },
+        {
+            name: "ムサカ (Moussaka)",
+            country: "ギリシャ共和国 🇬🇷",
+            image: "https://images.unsplash.com/photo-1621510456681-23a23cfb5f57?w=600&auto=format&fit=crop",
+            choices: ["ナス", "ひき肉", "ホワイトソース(ベシャメル)", "トマト"],
+            answers: ["ナス", "ひき肉", "ホワイトソース(ベシャメル)", "トマト"],
+            info: "ナス、ひき肉、トマトソース、ミートソース、そして濃厚なホワイトソースを何層にも重ねてオーブンで焼いた、ギリシャを代表するラザニアのような料理です（なんと全部正解です！）。"
+        },
+        {
+            name: "ファソラーダ (Fasolada)",
+            country: "ギリシャ共和国 🇬🇷",
+            image: "https://images.unsplash.com/photo-1547592165-e1d17fed6005?w=600&auto=format&fit=crop",
+            choices: ["白いんげん豆", "オリーブオイル", "豚肉", "トマト"],
+            answers: ["白いんげん豆", "オリーブオイル", "トマト"],
+            info: "「ギリシャ人の国民食」とも呼ばれるスープ。白いんげん豆と野菜をたっぷり、そして大量のオリーブオイルで煮込みます。伝統的にはお肉は入れません。"
+        },
+        {
+            name: "ボルシチ (Borscht)",
+            country: "ウクライナ 🇺🇦",
+            image: "https://images.unsplash.com/photo-1594756202469-9ff9799b2e4e?w=600&auto=format&fit=crop",
+            choices: ["ビーツ", "トマト", "牛肉または豚肉", "サワークリーム"],
+            answers: ["ビーツ", "牛肉または豚肉", "サワークリーム"],
+            info: "鮮やかな赤色は「ビーツ」によるもの。トマトスープと誤解されがちですが、ベースはビーツとお肉の旨味です。仕上げのサワークリーム（スメタナ）も欠かせません。"
+        },
+        {
+            name: "フェイジョアダ (Feijoada)",
+            country: "ブラジル連邦共和国 🇧🇷",
+            image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&auto=format&fit=crop",
+            choices: ["黒豆", "豚肉・牛肉", "ココナッツミルク", "ニンニク"],
+            answers: ["黒豆", "豚肉・牛肉", "ニンニク"],
+            info: "黒豆とお肉（豚の耳、尾、ソーセージなど）をじっくり煮込んだブラジルの代表料理。ココナッツミルクは使用しません。"
+        },
+        {
+            name: "モレ・ポブラノ (Mole Poblano)",
+            country: "メキシコ合衆国 🇲🇽",
+            image: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&auto=format&fit=crop",
+            choices: ["チョコレート", "唐辛子", "チキン", "スパイス"],
+            answers: ["チョコレート", "唐辛子", "チキン", "スパイス"],
+            info: "なんと「甘くないチョコレート」を数種類の唐辛子やスパイスと混ぜてソースにし、チキンにかけたメキシコの伝統的な祝祭料理です。奥深いコクが特徴です（全部正解！）。"
+        },
+        {
+            name: "ピザ・マルゲリータ (Margherita)",
+            country: "イタリア共和国 🇮🇹",
+            image: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=600&auto=format&fit=crop",
+            choices: ["トマトソース", "モッツァレラチーズ", "バジル", "オレガノ"],
+            answers: ["トマトソース", "モッツァレラチーズ", "バジル"],
+            info: "イタリア王妃マルゲリータに捧げられたピザ。イタリアの国旗（赤・白・緑）を表すため、トマト・モッツァレラ・バジルのみを使用します。よく似たハーブのオレガノは「マリナーラ」に使われます。"
+        },
+        {
+            name: "シャクシュカ (Shakshuka)",
+            country: "チュニジア共和国 / イスラエル 🇹🇳🇮🇱",
+            image: "https://images.unsplash.com/photo-1590412200988-a436bb7050a4?w=600&auto=format&fit=crop",
+            choices: ["トマト", "卵", "スパイス(クミン等)", "ジャガイモ"],
+            answers: ["トマト", "卵", "スパイス(クミン等)"],
+            info: "トマト、タマネギ、スパイスを炒めたソースの真ん中に、卵を落として半熟に仕上げた北アフリカ・中東発祥の定番朝ごはんメニューです。"
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0; // スコア機能も追加しました！
+
+    function loadQuestion() {
+        const currentQuiz = quizData[currentQuestionIndex];
+        
+        // 進行状況の表示
+        document.getElementById("progress").innerText = `第 ${currentQuestionIndex + 1} 問 / 全 ${quizData.length} 問`;
+        
+        document.getElementById("dish-image").src = currentQuiz.image;
+        document.getElementById("dish-name").innerText = currentQuiz.name;
+        document.getElementById("dish-country").innerText = `発祥・文化圏: ${currentQuiz.country}`;
+        
+        const resultMessage = document.getElementById("result-message");
+        resultMessage.innerText = "";
+        resultMessage.style.display = "none";
+        document.getElementById("submit-button").style.display = "inline-block";
+        document.getElementById("next-button").style.display = "none";
+        
+        const choicesContainer = document.getElementById("choices-container");
+        choicesContainer.innerHTML = "";
+        
+        currentQuiz.choices.forEach((choice, index) => {
+            const label = document.createElement("label");
+            label.classList.add("choice-label");
+            label.id = `label-${index}`;
+            
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.value = choice;
+            checkbox.id = `check-${index}`;
+            
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(choice));
+            choicesContainer.appendChild(label);
+        });
+    }
+
+    function submitAnswer() {
+        const currentQuiz = quizData[currentQuestionIndex];
+        const resultMessage = document.getElementById("result-message");
+        
+        const selectedChoices = [];
+        currentQuiz.choices.forEach((choice, index) => {
+            const checkbox = document.getElementById(`check-${index}`);
+            if (checkbox.checked) {
+                selectedChoices.push(choice);
+            }
+            checkbox.disabled = true;
+        });
+
+        const isCorrect = 
+            selectedChoices.length === currentQuiz.answers.length && 
+            selectedChoices.every(val => currentQuiz.answers.includes(val));
+
+        currentQuiz.choices.forEach((choice, index) => {
+            const label = document.getElementById(`label-${index}`);
+            const checkbox = document.getElementById(`check-${index}`);
+            
+            if (currentQuiz.answers.includes(choice)) {
+                label.classList.add("correct");
+            } else if (checkbox.checked) {
+                label.classList.add("incorrect");
+            }
+        });
+
+        resultMessage.style.display = "block";
+        if (isCorrect) {
+            score++;
+            resultMessage.innerHTML = `<span style="color:#2ecc71; font-size:22px; font-weight:bold;">⭕ 正解！お見事！</span><br><br>${currentQuiz.info}`;
+        } else {
+            const answerText = currentQuiz.answers.join('、');
+            resultMessage.innerHTML = `<span style="color:#e74c3c; font-size:22px; font-weight:bold;">❌ 残念！</span><br>正解の食材: <strong>${answerText}</strong><br><br>${currentQuiz.info}`;
+        }
+
+        document.getElementById("submit-button").style.display = "none";
+        document.getElementById("next-button").style.display = "inline-block";
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            // 結果発表画面
+            let evaluation = "";
+            if (score === 10) evaluation = "素晴らしい！完璧な世界グルメマスターです！🏆";
+            else if (score >= 7) evaluation = "かなりマニアックな食材まで知っていますね！すごいです！✨";
+            else if (score >= 4) evaluation = "標準以上の知識！異国情緒を楽しめましたか？😋";
+            else evaluation = "これから色んな料理を知る楽しみがありますね！✈️";
+
+            document.getElementById("quiz-area").innerHTML = `
+                <h2 style="color:#ffd43b; font-size: 28px;">🎉 クイズ終了！</h2>
+                <p style="font-size: 20px; font-weight: bold; margin: 20px 0;">あなたのスコア: <span style="color:#ff6b6b; font-size: 26px;">${score}</span> / ${quizData.length}</p>
+                <p style="line-height: 1.6; padding: 0 10px;">${evaluation}</p>
+                <button class="action-btn" onclick="location.reload()" style="margin-top: 30px;">もう一度遊ぶ</button>
+            `;
+            document.getElementById("progress").style.display = "none";
+        }
+    }
+
+    window.onload = loadQuestion;
+</script>
+
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>極限！世界のマイナー料理サバイバル -ULTIMATE-</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0d0e12;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: #161822;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+            text-align: center;
+            border: 1px solid #2a2d3d;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        /* 画面シェイク（振動）アニメーション */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(0deg); }
+        }
+        .shake-active {
+            animation: shake 0.4s;
+        }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .hearts {
+            font-size: 22px;
+            letter-spacing: 2px;
+        }
+        .timer-box {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff4757;
+            background: rgba(255, 71, 87, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 71, 87, 0.3);
+        }
+        .timer-gauge-container {
+            width: 100%;
+            height: 6px;
+            background: #2a2d3d;
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .timer-gauge {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff4757, #ffa502);
+        }
+        h1 {
+            color: #ffd43b;
+            font-size: 22px;
+            margin: 0 0 5px 0;
+            text-shadow: 0 0 15px rgba(255, 212, 59, 0.3);
+        }
+        .progress {
+            font-size: 13px;
+            color: #8b8fab;
+            margin-bottom: 5px;
+        }
+        /* コンボ表示スタイリング */
+        .combo-box {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2ed573;
+            min-height: 20px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 8px rgba(46, 213, 115, 0.4);
+        }
+        .dish-visual-area {
+            width: 100%;
+            height: 220px;
+            background-color: #212431;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .dish-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .dish-emoji-fallback {
+            font-size: 80px;
+            display: none;
+        }
+        .dish-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            min-height: 35px;
+        }
+        .dish-country {
+            font-size: 14px;
+            color: #a4b0be;
+            margin-bottom: 15px;
+            min-height: 20px;
+        }
+        .question {
+            font-size: 17px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #ffd43b;
+            background: rgba(255, 212, 59, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+            text-align: left;
+            max-width: 420px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .choice-label {
+            display: flex;
+            align-items: center;
+            background-color: #212431;
+            border: 2px solid #2f334d;
+            padding: 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .choice-label:hover {
+            background-color: #2b2f42;
+            border-color: #43496e;
+        }
+        .choice-label input {
+            margin-right: 15px;
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+        .choice-label.correct {
+            border-color: #2ed573;
+            background-color: rgba(46, 213, 115, 0.15);
+        }
+        .choice-label.incorrect {
+            border-color: #ff4757;
+            background-color: rgba(255, 71, 87, 0.15);
+        }
+        .action-btn {
+            background-color: #ffd43b;
+            color: #0d0e12;
+            border: none;
+            padding: 14px 50px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(255, 212, 59, 0.2);
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            background-color: #ffe066;
+            transform: translateY(-1px);
+        }
+        .result-message {
+            font-size: 16px;
+            margin-top: 20px;
+            line-height: 1.6;
+            text-align: left;
+            background: #1c1e2e;
+            padding: 18px;
+            border-radius: 10px;
+            border-left: 4px solid #ffd43b;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-card" class="container">
+    <div class="status-bar">
+        <div id="hearts" class="hearts">❤️❤️❤️</div>
+        <div id="timer-box" class="timer-box">⏱ 残り 15 秒</div>
+    </div>
+    <div class="timer-gauge-container">
+        <div id="timer-gauge" class="timer-gauge"></div>
+    </div>
+
+    <h1>🌍 極限！世界のマイナー料理サバイバル</h1>
+    <div id="progress" class="progress">STAGE 1 / 10</div>
+    <div id="combo-display" class="combo-box"></div>
+    
+    <div id="quiz-area">
+        <div class="dish-visual-area">
+            <img id="dish-image" class="dish-img" src="" alt="料理の画像" onerror="handleImageError()">
+            <div id="dish-emoji" class="dish-emoji-fallback">🍲</div>
+        </div>
+        
+        <div id="dish-name" class="dish-name"></div>
+        <div id="dish-country" class="dish-country"></div>
+        
+        <div class="question">使われている食材を「すべて過不足なく」選べ！</div>
+        
+        <div class="choices-container" id="choices-container"></div>
+        
+        <button id="submit-button" class="action-btn" onclick="submitAnswer()">回答をロック</button>
+        <div id="result-message" class="result-message"></div>
+        <button id="next-button" class="action-btn" style="display: none;" onclick="nextQuestion()">次のステージへ</button>
+    </div>
+</div>
+
+<script>
+    // 問題を全15問にボリュームアップ！
+    const originalQuizData = [
+        {
+            name: "セビチェ (Ceviche)", country: "ペルー共和国 🇵🇪", emoji: "🐟",
+            image: "https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600&auto=format&fit=crop&q=60",
+            choices: ["白身魚", "レモン・ライム", "牛肉", "タマネギ"], answers: ["白身魚", "レモン・ライム", "タマネギ"],
+            info: "生の魚介類に刻んだタマネギを合わせ、柑橘類のジュースでマリネしたペルーの国民的料理。お肉は使いません！"
+        },
+        {
+            name: "ガパオライス (Phat Kaphrao)", country: "タイ王国 🇹🇭", emoji: "🍳",
+            image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=600&auto=format&fit=crop&q=60",
+            choices: ["ホーリーバジル", "ひき肉", "パクチー", "唐辛子"], answers: ["ホーリーバジル", "ひき肉", "唐辛子"],
+            info: "ガパオとは「ホーリーバジル」のこと。ひき肉と唐辛子、バジルを炒めます。本場ではパクチーは入れません。"
+        },
+        {
+            name: "ハカール (Hákarl)", country: "アイスランド共和国 🇮🇸", emoji: "🦈",
+            image: "https://images.unsplash.com/photo-1475518118251-684889aa3de2?w=600&auto=format&fit=crop&q=60",
+            choices: ["サメの肉", "ジャガイモ", "塩", "トナカイの肉"], answers: ["サメの肉"],
+            info: "サメの肉を発酵させて乾燥させた伝統料理。強烈なアンモニア臭が特徴で、調味料なども使わずサメ肉単体を熟成させます。"
+        },
+        {
+            name: "ムサカ (Moussaka)", country: "ギリシャ共和国 🇬🇷", emoji: "🍆",
+            image: "https://images.unsplash.com/photo-1621510456681-23a23cfb5f57?w=600&auto=format&fit=crop&q=60",
+            choices: ["ナス", "ひき肉", "ホワイトソース", "トマト"], answers: ["ナス", "ひき肉", "ホワイトソース", "トマト"],
+            info: "ナス、ひき肉、トマトソース、濃厚なホワイトソースを何層にも重ねて焼いたラザニア風料理。（なんと選択肢全部正解！）"
+        },
+        {
+            name: "ファソラーダ (Fasolada)", country: "ギリシャ共和国 🇬🇷", emoji: "🫘",
+            image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=60",
+            choices: ["白いんげん豆", "オリーブオイル", "豚肉", "トマト"], answers: ["白いんげん豆", "オリーブオイル", "トマト"],
+            info: "「ギリシャ人の国民食」とも呼ばれるスープ。白いんげん豆と野菜をたっぷり、大量のオリーブオイルで煮込みます。お肉は皆無！"
+        },
+        {
+            name: "ボルシチ (Borscht)", country: "ウクライナ 🇺🇦", emoji: "🥣",
+            image: "https://images.unsplash.com/photo-1594756202469-9ff9799b2e4e?w=600&auto=format&fit=crop&q=60",
+            choices: ["ビーツ", "トマト", "牛肉または豚肉", "サワークリーム"], answers: ["ビーツ", "牛肉または豚肉", "サワークリーム"],
+            info: "鮮やかな赤色は「ビーツ」によるもの。トマトスープと誤解されがちですが、ベースはビーツとお肉の旨味。サワークリームを混ぜて食べます。"
+        },
+        {
+            name: "フェイジョアダ (Feijoada)", country: "ブラジル連邦共和国 🇧🇷", emoji: "🥩",
+            image: "https://images.unsplash.com/photo-1534939561126-855b8675edd7?w=600&auto=format&fit=crop&q=60",
+            choices: ["黒豆", "豚肉・牛肉", "ココナッツミルク", "ニンニク"], answers: ["黒豆", "豚肉・牛肉", "ニンニク"],
+            info: "黒豆とお肉（豚の耳、尾、ソーセージなど）をじっくり煮込んだブラジルの代表料理。ココナッツミルクは使用しません。"
+        },
+        {
+            name: "モレ・ポブラノ (Mole Poblano)", country: "メキシコ合衆国 🇲🇽", emoji: "🍫",
+            image: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&auto=format&fit=crop&q=60",
+            choices: ["チョコレート", "唐辛子", "チキン", "スパイス"], answers: ["チョコレート", "唐辛子", "チキン", "スパイス"],
+            info: "「甘くないチョコレート」を数種類の唐辛子やスパイスと混ぜて濃厚なソースにし、チキンにかけた伝統料理。（全部正解！）"
+        },
+        {
+            name: "ピザ・マルゲリータ (Margherita)", country: "イタリア共和国 🇮🇹", emoji: "🍕",
+            image: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=600&auto=format&fit=crop&q=60",
+            choices: ["トマトソース", "モッツァレラチーズ", "バジル", "オレガノ"], answers: ["トマトソース", "モッツァレラチーズ", "バジル"],
+            info: "イタリアの国旗（赤・白・緑）を表すため、トマト・モッツァレラ・バジルのみを使用。オレガノは載せません。"
+        },
+        {
+            name: "シャクシュカ (Shakshuka)", country: "チュニジア / イスラエル 🇹🇳🇮🇱", emoji: "🥘",
+            image: "https://images.unsplash.com/photo-1590412200988-a436bb7050a4?w=600&auto=format&fit=crop&q=60",
+            choices: ["トマト", "卵", "スパイス(クミン等)", "ジャガイモ"], answers: ["トマト", "卵", "スパイス(クミン等)"],
+            info: "トマト、タマネギ、スパイスを炒めたソースの真ん中に、卵を落として半熟に仕上げた北アフリカ・中東発祥の定番メニューです。"
+        },
+        // --- 🆕 新規追加されたマイナー料理5選 ---
+        {
+            name: "クスクス (Couscous)", country: "モロッコ王国 🇲🇦", emoji: "🌾",
+            image: "https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=600&auto=format&fit=crop&q=60",
+            choices: ["硬質小麦(セモリナ)", "ひよこ豆", "牛肉または羊肉", "ライス"], answers: ["硬質小麦(セモリナ)", "ひよこ豆", "牛肉または羊肉"],
+            info: "世界最小のパスタとも呼ばれる「硬質小麦」の粒を蒸し、煮込んだお肉や野菜、ひよこ豆をかけて食べる北アフリカの主食。お米は使いません。"
+        },
+        {
+            name: "ガスパチョ (Gazpacho)", country: "スペイン 🇪🇸", emoji: "🍅",
+            image: "https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?w=600&auto=format&fit=crop&q=60",
+            choices: ["完熟トマト", "きゅうり・ピーマン", "生クリーム", "オリーブオイル・パン"], answers: ["完熟トマト", "きゅうり・ピーマン", "オリーブオイル・パン"],
+            info: "スペイン・アンダルシア発祥の冷製トマトスープ。生クリームなどの乳製品は入れず、古くなったパンを混ぜてとろみをつけるのが伝統です。"
+        },
+        {
+            name: "パブロバ (Pavlova)", country: "ニュージーランド / 豪州 🇳🇿🇦🇺", emoji: "🎂",
+            image: "https://images.unsplash.com/photo-1511119293144-ec8a0c2834b6?w=600&auto=format&fit=crop&q=60",
+            choices: ["メレンゲ(卵白)", "小麦粉", "生クリーム", "キウイなどのフルーツ"], answers: ["メレンゲ(卵白)", "生クリーム", "キウイなどのフルーツ"],
+            info: "卵白と砂糖で作ったサクサクの「メレンゲ」をベースに、生クリームとフルーツを飾った伝統菓子。なんと小麦粉を一切使いません！"
+        },
+        {
+            name: "ポテ (Pot-au-feu / Potée)", country: "フランス共和国 🇫🇷", emoji: "🥬",
+            image: "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&auto=format&fit=crop&q=60",
+            choices: ["キャベツ", "豚肉または牛肉", "ソーセージ・根菜", "カレールー"], answers: ["キャベツ", "豚肉・牛肉", "ソーセージ・根菜"],
+            info: "フランスの伝統的な家庭的な鍋・煮込み料理。お肉やたっぷりのキャベツ、根菜をコトコト塩ベースで煮込みます。カレーではありません。"
+        },
+        {
+            name: "ナシゴレン (Nasi Goreng)", country: "インドネシア共和国 🇮🇩", emoji: "🍚",
+            image: "https://images.unsplash.com/photo-1612966608997-30ae044af16b?w=600&auto=format&fit=crop&q=60",
+            choices: ["ご飯", "サンバル(唐辛子ソース)", "ケチャップマニス(甘口醤油)", "チーズ"], answers: ["ご飯", "サンバル(唐辛子ソース)", "ケチャップマニス(甘口醤油)"],
+            info: "インドネシア風チャーハン。独特のコクは辛味ソースの「サンバル」と甘口調味料「ケチャップマニス」によるもの。チーズは入れません。"
+        }
+    ];
+
+    function shuffleArray(array) {
+        const clone = [...array];
+        for (let i = clone.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [clone[i], clone[j]] = [clone[j], clone[i]];
+        }
+        return clone;
+    }
+
+    // 全15問からランダムに10問を選出する仕組み
+    const quizData = shuffleArray(originalQuizData).slice(0, 10);
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let lives = 3;
+    let timerInterval = null;
+    let comboCount = 0; // 連鎖正解カウンター
+    
+    // --- 🔊 進化したオーディオジェネレーター ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type, combo = 0) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+
+        if (type === 'start') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, now);
+            osc.frequency.setValueAtTime(659.25, now + 0.1);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            osc.start(now);
+            osc.stop(now + 0.4);
+        } 
+        else if (type === 'correct') {
+            // コンボ数に応じて正解音のピッチが高くなる！
+            osc.type = 'triangle';
+            const baseFreq = 880 + (combo * 120);
+            osc.frequency.setValueAtTime(baseFreq, now);
+            osc.frequency.exponentialRampToValueAtTime(baseFreq * 2, now + 0.15);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        } 
+        else if (type === 'incorrect') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(180, now);
+            osc.frequency.setValueAtTime(130, now + 0.2);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.linearRampToValueAtTime(0.001, now + 0.45);
+            osc.start(now);
+            osc.stop(now + 0.45);
+        }
+        else if (type === 'win') {
+            osc.type = 'sine';
+            const notes = [523.25, 587.33, 659.25, 783.99, 1046.50, 1318.51];
+            notes.forEach((note, index) => {
+                osc.frequency.setValueAtTime(note, now + index * 0.08);
+            });
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.setValueAtTime(0.2, now + 0.4);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+            osc.start(now);
+            osc.stop(now + 0.9);
+        }
+        else if (type === 'gameover') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(280, now);
+            osc.frequency.linearRampToValueAtTime(80, now + 0.7);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+            osc.start(now);
+            osc.stop(now + 0.8);
+        }
+    }
+
+    // ⚡ 画面揺らし（シェイク）＋赤フラッシュ
+    function triggerDamageEffect() {
+        const gameCard = document.getElementById("game-card");
+        gameCard.classList.add("shake-active");
+        
+        // 画面を一瞬赤くするフラッシュ
+        const originalBg = document.body.style.backgroundColor;
+        document.body.style.backgroundColor = "#2a080c";
+        
+        setTimeout(() => {
+            gameCard.classList.remove("shake-active");
+            document.body.style.backgroundColor = originalBg;
+        }, 400);
+    }
+
+    function updateLivesDisplay() {
+        document.getElementById("hearts").innerText = "❤️".repeat(lives) + "🖤".repeat(3 - lives);
+    }
+
+    function startTimer() {
+        // ⚡ 後半ステージになるほど制限時間が短くなる（最大15秒〜最小7秒）
+        let maxTime = Math.max(15 - currentQuestionIndex, 7); 
+        let timeLeft = maxTime;
+        
+        const timerBox = document.getElementById("timer-box");
+        const gauge = document.getElementById("timer-gauge");
+        
+        timerBox.innerText = `⏱ 残り ${timeLeft} 秒`;
+        gauge.style.transition = "none";
+        gauge.style.width = "100%";
+        timerBox.style.color = "#ff4757";
+
+        // 動的なカウントダウン時間に合わせてゲージを滑らかに縮小
+        setTimeout(() => {
+            gauge.style.transition = `width ${maxTime}s linear`;
+            gauge.style.width = "0%";
+        }, 50);
+
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timerBox.innerText = `⏱ 残り ${timeLeft} 秒`;
+
+            if (timeLeft <= 4) {
+                timerBox.style.color = "#ff6b81";
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                timeOutAction();
+            }
+        }, 1000);
+    }
+
+    function handleImageError() {
+        document.getElementById("dish-image").style.display = "none";
+        document.getElementById("dish-emoji").style.display = "block";
+    }
+
+    function loadQuestion() {
+        if (lives <= 0) {
+            endGame(true);
+            return;
+        }
+
+        if (currentQuestionIndex > 0) playSound('start');
+
+        const currentQuiz = quizData[currentQuestionIndex];
+        document.getElementById("progress").innerText = `STAGE ${currentQuestionIndex + 1} / ${quizData.length}`;
+        
+        const imgTag = document.getElementById("dish-image");
+        const emojiTag = document.getElementById("dish-emoji");
+        imgTag.style.display = "block";
+        emojiTag.style.display = "none";
+        
+        imgTag.src = currentQuiz.image;
+        emojiTag.innerText = currentQuiz.emoji;
+
+        document.getElementById("dish-name").innerText = currentQuiz.name;
+        document.getElementById("dish-country").innerText = `発祥・文化圏: ${currentQuiz.country}`;
+        
+        const resultMessage = document.getElementById("result-message");
+        resultMessage.innerText = "";
+        resultMessage.style.display = "none";
+        document.getElementById("submit-button").style.display = "inline-block";
+        document.getElementById("next-button").style.display = "none";
+        
+        const choicesContainer = document.getElementById("choices-container");
+        choicesContainer.innerHTML = "";
+        
+        const shuffledChoices = shuffleArray(currentQuiz.choices);
+        shuffledChoices.forEach((choice, index) => {
+            const label = document.createElement("label");
+            label.classList.add("choice-label");
+            label.id = `label-${index}`;
+            
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.value = choice;
+            checkbox.id = `check-${index}`;
+            
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(choice));
+            choicesContainer.appendChild(label);
+        });
+
+        updateLivesDisplay();
+        startTimer();
+    }
+
+    function submitAnswer() {
+        clearInterval(timerInterval);
+        // ゲージの減少アニメをピタッと止める
+        const gauge = document.getElementById("timer-gauge");
+        gauge.style.width = window.getComputedStyle(gauge).width;
+        gauge.style.transition = "none";
+
+        const currentQuiz = quizData[currentQuestionIndex];
+        const resultMessage = document.getElementById("result-message");
+        
+        const selectedChoices = [];
+        const container = document.getElementById("choices-container");
+        const labels = container.getElementsByClassName("choice-label");
+
+        for (let i = 0; i < labels.length; i++) {
+            const checkbox = document.getElementById(`check-${i}`);
+            const choiceText = checkbox.value;
+            if (checkbox.checked) {
+                selectedChoices.push(choiceText);
+            }
+            checkbox.disabled = true;
+
+            if (currentQuiz.answers.includes(choiceText)) {
+                labels[i].classList.add("correct");
+            } else if (checkbox.checked) {
+                labels[i].classList.add("incorrect");
+            }
+        }
+
+        const isCorrect = 
+            selectedChoices.length === currentQuiz.answers.length && 
+            selectedChoices.every(val => currentQuiz.answers.includes(val));
+
+        resultMessage.style.display = "block";
+        const comboDisplay = document.getElementById("combo-display");
+
+        if (isCorrect) {
+            score++;
+            comboCount++;
+            playSound('correct', comboCount); // ⚡ コンボ音
+            
+            if (comboCount >= 2) {
+                comboDisplay.innerText = `🔥 ${comboCount} COMBO!! (正解音ピッチ上昇中)`;
+            } else {
+                comboDisplay.innerText = "";
+            }
+
+            resultMessage.innerHTML = `<span style="color:#2ed573; font-size:20px; font-weight:bold;">⭕ STAGE CLEAR!</span><br><br>${currentQuiz.info}`;
+        } else {
+            lives--;
+            comboCount = 0; // コンボ途切れる
+            comboDisplay.innerText = "";
+            updateLivesDisplay();
+            playSound('incorrect');
+            triggerDamageEffect(); // ⚡ 画面揺らし
+            
+            const answerText = currentQuiz.answers.join('、');
+            resultMessage.innerHTML = `<span style="color:#ff4757; font-size:20px; font-weight:bold;">❌ DAMAGE!（ライフ減少）</span><br>正解の食材: <strong>${answerText}</strong><br><br>${currentQuiz.info}`;
+        }
+
+        document.getElementById("submit-button").style.display = "none";
+        document.getElementById("next-button").style.display = "inline-block";
+        
+        if (lives <= 0) {
+            document.getElementById("next-button").innerText = "結果発表へ";
+        }
+    }
+
+    function timeOutAction() {
+        lives--;
+        comboCount = 0;
+        document.getElementById("combo-display").innerText = "";
+        updateLivesDisplay();
+        playSound('incorrect');
+        triggerDamageEffect(); // ⚡ 画面揺らし
+        
+        const currentQuiz = quizData[currentQuestionIndex];
+        const resultMessage = document.getElementById("result-message");
+        
+        const container = document.getElementById("choices-container");
+        const labels = container.getElementsByClassName("choice-label");
+
+        for (let i = 0; i < labels.length; i++) {
+            const checkbox = document.getElementById(`check-${i}`);
+            const choiceText = checkbox.value;
+            checkbox.disabled = true;
+            if (currentQuiz.answers.includes(choiceText)) {
+                labels[i].classList.add("correct");
+            }
+        }
+
+        resultMessage.style.display = "block";
+        const answerText = currentQuiz.answers.join('、');
+        resultMessage.innerHTML = `<span style="color:#ff4757; font-size:20px; font-weight:bold;">⏱ TIME OUT!（時間切れダメージ）</span><br>正解の食材: <strong>${answerText}</strong><br><br>${currentQuiz.info}`;
+
+        document.getElementById("submit-button").style.display = "none";
+        document.getElementById("next-button").style.display = "inline-block";
+        
+        if (lives <= 0) {
+            document.getElementById("next-button").innerText = "結果発表へ";
+        }
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length && lives > 0) {
+            loadQuestion();
+        } else {
+            endGame(lives <= 0);
+        }
+    }
+
+    function endGame(isGameOver) {
+        clearInterval(timerInterval);
+        document.getElementById("combo-display").style.display = "none";
+        
+        let title = "🎉 サバイバル達成！";
+        let titleColor = "#ffd43b";
+        let evaluation = "";
+        
+        if (isGameOver) {
+            title = "💀 GAME OVER";
+            titleColor = "#ff4757";
+            playSound('gameover');
+        } else {
+            playSound('win');
+        }
+
+        if (score === 10) evaluation = "【クレイジージャーニー級】<br>地球上のすべての料理を完璧に解析した伝説の美食大使。あなたの前で隠し味は通用しない！🏆";
+        else if (score >= 8) evaluation = "【ベテラン現地コーディネーター】<br>マニアックな屋台料理の裏側まで知り尽くした旅のプロ。後半の超スピードタイマーを生き残った猛者。✨";
+        else if (score >= 5) evaluation = "【好奇心旺盛なバックパッカー】<br>普通の観光客よりはるかにグルメ！メニューが読めなくても美味しいものを引き当てる強運の持ち主。😋";
+        else if (score >= 2) evaluation = "【パッケージツアー旅行者】<br>まだ見ぬ世界の料理がたくさんありますね！まずは安全なガイドブック掲載店から攻めましょう。✈️";
+        else evaluation = "【マクドナルド信者】<br>海外に行ってもきっと知ってるチェーン店に駆け込むタイプ。ポテトの安心感は異常ですからね。🍟";
+
+        document.getElementById("quiz-area").innerHTML = `
+            <h2 style="color:${titleColor}; font-size: 32px; margin-top:10px;">${title}</h2>
+            <p style="font-size: 20px; font-weight: bold; margin: 20px 0;">最終クリアステージ: <span style="color:#ff6b6b; font-size: 26px;">${score}</span> / ${quizData.length}</p>
+            <div style="line-height: 1.8; background:#1c1e2e; padding:20px; border-radius:10px; border: 1px solid #2a2d3d; text-align:center;">
+                <span style="color:#ffd43b; font-size:18px; font-weight:bold;">獲得した称号</span><br><br>${evaluation}
+            </div>
+            <button class="action-btn" onclick="location.reload()" style="margin-top: 30px; width:100%;">もう一度挑戦する</button>
+        `;
+        document.getElementById("progress").style.display = "none";
+        document.getElementById("timer-box").style.display = "none";
+        document.getElementById("timer-gauge").parentElement.style.display = "none";
+    }
+
+    window.onload = loadQuestion;
+</script>
+
+</body>
+</html>
