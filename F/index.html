@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💖 恋愛おみくじ & ミュージック 💖</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff7eb3;
+            --primary-deep: #ff5c8a;
+            --accent: #a18cd1;
+            --mint: #63d8b0;
+            --gold: #ffb648;
+            --text: #5b4a52;
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'M PLUS Rounded 1c', 'Kosugi Maru', sans-serif;
+            background: linear-gradient(135deg, #ffdee9 0%, #ffe9f3 40%, #e0c3fc 100%);
+            background-attachment: fixed;
+            margin: 0;
+            padding: 16px;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* ふわふわ浮かぶ背景ハート */
+        .bg-hearts {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .bg-hearts span {
+            position: absolute;
+            bottom: -40px;
+            font-size: 1.4rem;
+            opacity: 0.5;
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 520px;
+            width: 100%;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 24px;
+            border-radius: 28px;
+            box-shadow: 0 10px 30px rgba(255, 126, 179, 0.25);
+            margin-bottom: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.7rem;
+            font-weight: 800;
+            margin: 4px 0 2px;
+            background: linear-gradient(90deg, var(--primary-deep), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        h2 {
+            text-align: center;
+            color: var(--primary-deep);
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #a58a97;
+            margin-top: 0;
+        }
+
+        /* おみくじ選択エリア */
+        .omikuji-boxes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 22px 0 6px;
+        }
+        /* おみくじ風の縦長ボックス */
+        .omikuji-box {
+            position: relative;
+            color: white;
+            padding: 16px 6px 14px;
+            min-height: 128px;
+            border-radius: 40px 40px 14px 14px;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 1rem;
+            transition: transform 0.15s, box-shadow 0.15s;
+            border: none;
+            box-shadow: inset -6px 0 12px rgba(0,0,0,0.12), inset 6px 0 10px rgba(255,255,255,0.22), 0 6px 14px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+            font-family: inherit;
+            overflow: hidden;
+        }
+        /* 筒の口（上部の帯） */
+        .omikuji-box::before {
+            content: "";
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 8px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.45);
+        }
+        .omikuji-box .emoji { font-size: 1.5rem; margin-top: 8px; }
+        .omikuji-box .label {
+            font-size: 1.15rem;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: 2px;
+            background: rgba(255,255,255,0.85);
+            color: #d0355b;
+            padding: 8px 4px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .box-shiro .label { color: #8a7684; }
+        .box-kuro .label { color: #4a3b42; }
+        .omikuji-box:hover, .omikuji-box:focus-visible { transform: translateY(-5px) scale(1.03); box-shadow: inset -6px 0 12px rgba(0,0,0,0.12), inset 6px 0 10px rgba(255,255,255,0.22), 0 12px 22px rgba(0,0,0,0.2); }
+        .omikuji-box:active { transform: scale(0.97); }
+
+        .box-kurenai { background: linear-gradient(135deg, #ff6a88, #ff99ac); }
+        .box-shiro   { background: linear-gradient(135deg, #b8c6db, #f5f7fa); color: #7b6b78; }
+        .box-momo    { background: linear-gradient(135deg, #f78ca0, #f9748f); }
+        .box-sora    { background: linear-gradient(135deg, #74b9ff, #a29bfe); }
+        .box-kin     { background: linear-gradient(135deg, #ffd86f, #fc9842); }
+        .box-mori    { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .box-daidai  { background: linear-gradient(135deg, #ffa751, #ff7e5f); }
+        .box-sumire  { background: linear-gradient(135deg, #b06ab3, #8e2de2); }
+        .box-kuro    { background: linear-gradient(135deg, #434343, #7b6f83); }
+
+        /* ===== 箱を開けるアニメーション演出 ===== */
+        #opening-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 24px;
+            background: rgba(50, 30, 45, 0.55);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+        #opening-overlay.show { display: flex; animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* おみくじ筒 */
+        .magic-box {
+            position: relative;
+            width: 90px;
+            height: 190px;
+            animation: boxShake 0.45s ease-in-out 0s 2;
+        }
+        .magic-box.opening { animation: none; }
+        @keyframes boxShake {
+            0%, 100% { transform: rotate(0deg) translateY(0); }
+            15% { transform: rotate(-10deg) translateY(-4px); }
+            30% { transform: rotate(9deg) translateY(0); }
+            45% { transform: rotate(-8deg) translateY(-3px); }
+            60% { transform: rotate(7deg) translateY(0); }
+            80% { transform: rotate(-4deg) translateY(-2px); }
+        }
+
+        /* 筒本体 */
+        .tube-body {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 84px;
+            height: 168px;
+            border-radius: 16px 16px 22px 22px / 24px 24px 14px 14px;
+            box-shadow: inset -10px 0 18px rgba(0,0,0,0.18), inset 10px 0 14px rgba(255,255,255,0.25), 0 12px 24px rgba(0,0,0,0.3);
+            z-index: 2;
+            overflow: hidden;
+        }
+        /* 筒の「占」ラベル */
+        .tube-body::after {
+            content: "恋";
+            position: absolute;
+            left: 50%;
+            top: 52%;
+            transform: translate(-50%, -50%);
+            width: 46px;
+            height: 46px;
+            line-height: 46px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #d0355b;
+            background: #fff7fa;
+            border: 2px solid #ffb6c9;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        /* 筒の上のフタ（穴あき） */
+        .tube-cap {
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 94px;
+            height: 26px;
+            border-radius: 50%;
+            background: #4a3b42;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            z-index: 4;
+        }
+        /* みくじ棒が出る穴 */
+        .tube-cap::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 14px;
+            height: 6px;
+            border-radius: 4px;
+            background: #1c1418;
+        }
+        /* みくじ棒 */
+        .mikuji-stick {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            width: 10px;
+            height: 96px;
+            border-radius: 5px;
+            background: linear-gradient(90deg, #e8d49a, #fff3d6 40%, #d9c185);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+            transform: translateX(-50%) translateY(60px);
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1;
+        }
+        /* みくじ棒の赤い先端 */
+        .mikuji-stick::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0;
+            width: 10px;
+            height: 22px;
+            border-radius: 5px 5px 0 0;
+            background: linear-gradient(#ff5c72, #d0355b);
+        }
+        .magic-box.opening .mikuji-stick {
+            transform: translateX(-50%) translateY(-104px);
+        }
+        .box-glow {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff, rgba(255,220,240,0.2));
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            z-index: 5;
+        }
+        .magic-box.opening .box-glow {
+            animation: glowBurst 0.7s ease-out 0.35s forwards;
+        }
+        @keyframes glowBurst {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0.9; }
+            100% { transform: translate(-50%, -50%) scale(18); opacity: 0; }
+        }
+        .burst {
+            position: absolute;
+            left: 50%;
+            top: -10px;
+            font-size: 1.4rem;
+            opacity: 0;
+            z-index: 5;
+        }
+        .magic-box.opening .burst { animation: burstOut 0.8s ease-out 0.4s forwards; }
+        .burst:nth-child(5) { --tx: -80px; --ty: -50px; }
+        .burst:nth-child(6) { --tx: 80px;  --ty: -50px; }
+        .burst:nth-child(7) { --tx: -60px; --ty: 30px; }
+        .burst:nth-child(8) { --tx: 60px;  --ty: 30px; }
+        .burst:nth-child(9) { --tx: 0px;   --ty: -110px; }
+        @keyframes burstOut {
+            0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+            100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1.3); opacity: 0; }
+        }
+        .opening-text {
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.05rem;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            letter-spacing: 0.05em;
+        }
+
+        /* 結果表示エリア */
+        #result-card {
+            display: none;
+            background: linear-gradient(160deg, #fff, #fff0f6);
+            border: 2px dashed var(--primary);
+            border-radius: 22px;
+            padding: 22px 18px;
+            margin-top: 18px;
+            text-align: center;
+            animation: pop 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        .selected-box-tag {
+            display: inline-block;
+            font-size: 0.75rem;
+            color: #a58a97;
+            background: #fff;
+            border-radius: 20px;
+            padding: 4px 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .unsei {
+            font-size: 2.3rem;
+            font-weight: 800;
+            color: var(--primary-deep);
+            margin: 6px 0;
+            text-shadow: 0 2px 8px rgba(255, 126, 179, 0.3);
+        }
+        .result-comment {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 8px 4px 14px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .info-box {
+            background: white;
+            border-radius: 14px;
+            padding: 12px 14px;
+            text-align: left;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        .info-box .title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .info-box .body { margin-top: 4px; font-weight: 700; font-size: 0.95rem; }
+        .music-box  { border-left: 5px solid var(--mint); }
+        .music-box .title { color: var(--mint); }
+        .color-box  { border-left: 5px solid var(--accent); }
+        .color-box .title { color: var(--accent); }
+        .color-body { display: flex; align-items: center; gap: 8px; }
+        .color-chip {
+            width: 22px; height: 22px; border-radius: 50%;
+            box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+        .item-box   { border-left: 5px solid var(--gold); }
+        .item-box .title { color: var(--gold); }
+        .food-box   { border-left: 5px solid #ff9aa2; }
+        .food-box .title { color: #ff6f91; }
+        .spot-box   { border-left: 5px solid #6fb3ff; }
+        .spot-box .title { color: #3d8bf0; }
+
+        .listen-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 8px;
+            background: var(--mint);
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 800;
+            padding: 6px 12px;
+            border-radius: 20px;
+            transition: transform 0.15s, filter 0.15s;
+        }
+        .listen-btn:hover { filter: brightness(1.05); }
+        .listen-btn:active { transform: scale(0.96); }
+
+        /* SNSシェア */
+        .share-label {
+            margin: 18px 0 8px;
+            font-size: 0.8rem;
+            color: #a58a97;
+            font-weight: 700;
+        }
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .sns-btn {
+            flex: 1;
+            border: none;
+            padding: 11px 6px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: transform 0.15s, filter 0.15s;
+            text-decoration: none;
+        }
+        .sns-btn:active { transform: scale(0.96); }
+        .sns-btn:hover { filter: brightness(1.05); }
+        .sns-x { background: #000; }
+        .sns-line { background: #06c755; }
+        .sns-copy { background: linear-gradient(90deg, var(--primary), var(--accent)); }
+
+        /* 履歴エリア */
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 12px 0 0;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+        .history-item {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            gap: 4px 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.7);
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+        .history-item .h-date { color: #a58a97; font-size: 0.75rem; }
+        .history-item .h-unsei { font-weight: 800; color: var(--primary-deep); }
+        .history-item .h-music { grid-column: 1 / -1; color: #4bbf97; font-size: 0.8rem; }
+        .empty-msg { text-align: center; color: #bda9b4; padding: 20px; }
+
+        .clear-btn {
+            width: 100%;
+            background: #f3e6ee;
+            color: #a58a97;
+            border: none;
+            padding: 10px;
+            border-radius: 14px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-family: inherit;
+            font-weight: 700;
+            transition: background 0.15s;
+        }
+        .clear-btn:hover { background: #ecd8e4; }
+
+        @keyframes pop {
+            0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 400px) {
+            .omikuji-boxes { grid-template-columns: repeat(2, 1fr); }
+            h1 { font-size: 1.4rem; }
+            .unsei { font-size: 2rem; }
+            .container { padding: 18px; border-radius: 22px; }
+        }
+        @media (min-width: 620px) {
+            .info-grid { grid-template-columns: 1fr 1fr; }
+            .info-box.music-box { grid-column: 1 / -1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-hearts" id="bg-hearts"></div>
+
+    <!-- 箱を開ける演出オーバーレイ -->
+    <div id="opening-overlay">
+        <div class="magic-box" id="magic-box">
+            <div class="mikuji-stick" id="mikuji-stick"></div>
+            <div class="tube-body" id="tube-body"></div>
+            <div class="tube-cap" id="tube-cap"></div>
+            <div class="box-glow"></div>
+            <span class="burst">💖</span>
+            <span class="burst">✨</span>
+            <span class="burst">🌸</span>
+            <span class="burst">💫</span>
+            <span class="burst">💕</span>
+        </div>
+        <div class="opening-text" id="opening-text">箱を開けています…</div>
+    </div>
+
+    <div class="container">
+        <h1>💖 恋愛おみくじ 💖</h1>
+        <p class="subtitle">直感で、気になる箱を1つ選んでね ✨</p>
+
+        <div class="omikuji-boxes">
+            <button class="omikuji-box box-kurenai" onclick="drawOmikuji('kurenai')">
+                <span class="emoji">❤️</span><span class="label">紅</span>
+            </button>
+            <button class="omikuji-box box-shiro" onclick="drawOmikuji('shiro')">
+                <span class="emoji">🤍</span><span class="label">白</span>
+            </button>
+            <button class="omikuji-box box-momo" onclick="drawOmikuji('momo')">
+                <span class="emoji">🌸</span><span class="label">桃</span>
+            </button>
+            <button class="omikuji-box box-sora" onclick="drawOmikuji('sora')">
+                <span class="emoji">💙</span><span class="label">空</span>
+            </button>
+            <button class="omikuji-box box-kin" onclick="drawOmikuji('kin')">
+                <span class="emoji">💛</span><span class="label">金</span>
+            </button>
+            <button class="omikuji-box box-mori" onclick="drawOmikuji('mori')">
+                <span class="emoji">💚</span><span class="label">翠</span>
+            </button>
+            <button class="omikuji-box box-daidai" onclick="drawOmikuji('daidai')">
+                <span class="emoji">🧡</span><span class="label">橙</span>
+            </button>
+            <button class="omikuji-box box-sumire" onclick="drawOmikuji('sumire')">
+                <span class="emoji">💜</span><span class="label">菫</span>
+            </button>
+            <button class="omikuji-box box-kuro" onclick="drawOmikuji('kuro')">
+                <span class="emoji">🖤</span><span class="label">黒</span>
+            </button>
+        </div>
+
+        <div id="result-card">
+            <span class="selected-box-tag" id="selected-box"></span>
+            <div class="unsei" id="result-unsei">大吉</div>
+            <p class="result-comment" id="result-comment">素敵な出会いがある予感！</p>
+
+            <div class="info-grid">
+                <div class="info-box music-box">
+                    <div class="title">🎵 今日のラッキーミュージック</div>
+                    <div class="body" id="result-music">曲名 - アーティスト</div>
+                    <a class="listen-btn" id="listen-btn" href="#" target="_blank" rel="noopener">🎧 曲を聴く（YouTube）</a>
+                </div>
+                <div class="info-box color-box">
+                    <div class="title">🎨 ラッキーカラー</div>
+                    <div class="body color-body">
+                        <span class="color-chip" id="result-color-chip"></span>
+                        <span id="result-color">ピンク</span>
+                    </div>
+                </div>
+                <div class="info-box item-box">
+                    <div class="title">✨ ラッキーアイテム</div>
+                    <div class="body" id="result-item">リップ</div>
+                </div>
+                <div class="info-box food-box">
+                    <div class="title">🍰 ラッキーフード</div>
+                    <div class="body" id="result-food">いちごケーキ</div>
+                </div>
+                <div class="info-box spot-box">
+                    <div class="title">📍 ラッキースポット</div>
+                    <div class="body" id="result-spot">おしゃれなカフェ</div>
+                </div>
+            </div>
+
+            <p class="share-label">結果をシェアする 💌</p>
+            <div class="share-buttons">
+                <a class="sns-btn sns-x" id="share-x" href="#" target="_blank" rel="noopener">𝕏 でシェア</a>
+                <a class="sns-btn sns-line" id="share-line" href="#" target="_blank" rel="noopener">LINE</a>
+                <button class="sns-btn sns-copy" onclick="copyResult()">📋 コピー</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📜 占いの履歴</h2>
+        <ul id="history-container" class="history-list"></ul>
+        <button class="clear-btn" onclick="clearHistory()">履歴をクリア</button>
+    </div>
+
+    <script>
+        // ===== 箱ごとの設定（色によって傾向が変わる） =====
+        // weights: [大吉, 恋吉, 吉, 中吉, 末吉, 小吉, 凶] の出やすさ
+        const boxes = {
+            kurenai: {
+                name: "❤️ 紅の箱（情熱の恋）",
+                lidColor: "#ff4d6d", baseColor: "#ff8fa3",
+                weights: [30, 26, 16, 12, 6, 6, 4, 2],
+                comments: [
+                    "恋のエネルギーが最高潮！勇気を出してアプローチすれば大成功の予感。",
+                    "今日のあなたは魅力全開。ストレートな気持ちがいちばん響く日。",
+                    "情熱が実を結ぶとき。ドキドキするお誘いをしてみて。",
+                    "赤いアイテムを身につけると、恋の勝負運がぐっと上がるよ。"
+                ],
+                music: ["「I LOVE...」 - Official髭男dism","「マリーゴールド」 - あいみょん","「アイドル」 - YOASOBI","「高嶺の花子さん」 - back number","「怪獣の花唄」 - Vaundy","「ケセラセラ」 - Mrs. GREEN APPLE"],
+                colors: [{name:"チェリーレッド",hex:"#ff5c72"},{name:"コーラルピンク",hex:"#ff8fab"},{name:"ローズ",hex:"#e56b9d"}],
+                items: ["赤リップ","ハート柄のアクセサリー","情熱の赤ネイル","甘い香水"]
+            },
+            shiro: {
+                name: "🤍 白の箱（純愛）",
+                lidColor: "#cfd8e3", baseColor: "#eef2f7",
+                weights: [18, 24, 26, 14, 8, 8, 2, 1],
+                comments: [
+                    "焦らずじっくり関係を育てて。誠実さがいちばんの魅力になる日。",
+                    "まっすぐな想いが伝わるとき。飾らないあなたが素敵。",
+                    "聞き上手になると好感度がぐんとアップ。優しさが鍵。",
+                    "清潔感のある装いが吉。白い小物でピュアな印象に。"
+                ],
+                music: ["「小さな恋のうた」 - MONGOL800","「奏（かなで）」 - スキマスイッチ","「三日月」 - 絢香","「366日」 - HY","「花束」 - back number","「ただ君に晴れ」 - ヨルシカ"],
+                colors: [{name:"ミルキーホワイト",hex:"#f5f0f2"},{name:"アイスブルー",hex:"#a9e5ff"},{name:"ラベンダー",hex:"#b39ddb"}],
+                items: ["白いハンカチ","シンプルなネックレス","レターセット","ハンドクリーム"]
+            },
+            momo: {
+                name: "🌸 桃の箱（出会い）",
+                lidColor: "#ff8fb0", baseColor: "#ffc2d6",
+                weights: [16, 20, 22, 22, 8, 10, 2, 1],
+                comments: [
+                    "新しい出会いの予感！いつもと違う場所に足を運んでみて。",
+                    "笑顔でいると素敵な縁が舞い込む日。フットワーク軽めが吉。",
+                    "共通の趣味から会話が弾みそう。好きなお店の話をしてみて。",
+                    "春めいた装いで気分もアップ。人が集まる場所がラッキー。"
+                ],
+                music: ["「君はロックを聴かない」 - あいみょん","「CHE.R.RY」 - YUI","「新宝島」 - サカナクション","「メリーゴーランド」 - Mrs. GREEN APPLE","「愛を伝えたいだとか」 - あいみょん","「Pretender」 - Official髭男dism"],
+                colors: [{name:"ピーチ",hex:"#ffc4a3"},{name:"コーラルピンク",hex:"#ff8fab"},{name:"レモンイエロー",hex:"#ffe066"}],
+                items: ["花柄のハンカチ","リボンのヘアゴム","写真映えするドリンク","フローラルな香水"]
+            },
+            sora: {
+                name: "💙 空の箱（片想い）",
+                lidColor: "#7aa8ff", baseColor: "#a9c8ff",
+                weights: [10, 16, 18, 18, 16, 16, 6, 4],
+                comments: [
+                    "今は想いを温める時期。焦らず自分を磨けば距離は縮まる。",
+                    "相手の小さな優しさに気づける日。さりげない気配りが吉。",
+                    "片想いも立派な恋。あなたの一途さがいつか届くよ。",
+                    "空を見上げて深呼吸。落ち着いた態度が好印象につながる。"
+                ],
+                music: ["「なんでもないや」 - RADWIMPS","「前前前世」 - RADWIMPS","「ドライフラワー」 - 優里","「白日」 - King Gnu","「夜に駆ける」 - YOASOBI","「ハッピーエンド」 - back number"],
+                colors: [{name:"スカイブルー",hex:"#7ec8ff"},{name:"アイスブルー",hex:"#a9e5ff"},{name:"パープル",hex:"#a18cd1"}],
+                items: ["青いお守り","小さめのぬいぐるみ","推しのグッズ","キラキラのスマホケース"]
+            },
+            kin: {
+                name: "💛 金の箱（復縁・幸運）",
+                lidColor: "#f5b642", baseColor: "#ffd579",
+                weights: [34, 22, 16, 12, 6, 6, 4, 1],
+                comments: [
+                    "大きな幸運が舞い込む予感！思い切った一歩が運命を変えるかも。",
+                    "復縁のチャンス到来。素直な連絡がいい流れを呼ぶ日。",
+                    "金運も恋愛運も好調。自分へのご褒美が運気を上げる。",
+                    "キラキラした小物で運気アップ。自信を持って前へ。"
+                ],
+                music: ["「アイドル」 - YOASOBI","「I LOVE...」 - Official髭男dism","「ケセラセラ」 - Mrs. GREEN APPLE","「サビ」 - こっちのけんと","「怪獣の花唄」 - Vaundy","「高嶺の花子さん」 - back number"],
+                colors: [{name:"シャンパンゴールド",hex:"#f6cd7b"},{name:"レモンイエロー",hex:"#ffe066"},{name:"ローズ",hex:"#e56b9d"}],
+                items: ["ゴールドのアクセサリー","小さなお守り","推しのグッズ","キラキラのヘアクリップ"]
+            },
+            mori: {
+                name: "💚 翠の箱（癒し・友情）",
+                lidColor: "#39c47f", baseColor: "#7fe6b3",
+                weights: [14, 14, 20, 22, 14, 12, 4, 3],
+                comments: [
+                    "心が安らぐ一日。無理せず自分をいたわると恋愛運も回復。",
+                    "友情から芽生える恋の予感。身近な人を大切に。",
+                    "自然の中でリフレッシュすると吉。穏やかな笑顔が魅力に。",
+                    "緑や植物に触れると癒される日。焦らずマイペースで。"
+                ],
+                music: ["「366日」 - HY","「ただ君に晴れ」 - ヨルシカ","「奏（かなで）」 - スキマスイッチ","「花束」 - back number","「メリーゴーランド」 - Mrs. GREEN APPLE","「小さな恋のうた」 - MONGOL800"],
+                colors: [{name:"ミントグリーン",hex:"#7ee8c4"},{name:"アイスブルー",hex:"#a9e5ff"},{name:"ミルキーホワイト",hex:"#f5f0f2"}],
+                items: ["ふわふわのマフラー","観葉植物のミニポット","手作りのお菓子","いい香りのハンドクリーム"]
+            },
+            daidai: {
+                name: "🧡 橙の箱（ときめき）",
+                lidColor: "#ff7e5f", baseColor: "#ffb07c",
+                weights: [22, 22, 18, 18, 8, 8, 4, 2],
+                comments: [
+                    "気持ちが弾む一日。元気なあなたに周りが引き寄せられる予感。",
+                    "はじめての一歩を踏み出すのに最適な日。笑顔で話しかけてみて。",
+                    "楽しい時間が恋を加速させる。デートやお出かけが吉。",
+                    "ビタミンカラーの小物で気分アップ。ポジティブさが魅力に。"
+                ],
+                music: ["「ケセラセラ」 - Mrs. GREEN APPLE","「新宝島」 - サカナクション","「怪獣の花唄」 - Vaundy","「サビ」 - こっちのけんと","「CHE.R.RY」 - YUI","「愛を伝えたいだとか」 - あいみょん"],
+                colors: [{name:"オレンジ",hex:"#ff9f45"},{name:"ピーチ",hex:"#ffc4a3"},{name:"レモンイエロー",hex:"#ffe066"}],
+                items: ["ビタミンカラーの小物","写真映えするドリンク","元気が出る香水","キラキラのヘアクリップ"]
+            },
+            sumire: {
+                name: "💜 菫の箱（運命の恋）",
+                lidColor: "#8e2de2", baseColor: "#b06ab3",
+                weights: [26, 24, 16, 12, 8, 8, 6, 3],
+                comments: [
+                    "運命的な出会いの予感。直感を信じて動くと道が開ける。",
+                    "深いつながりが生まれる日。心を開くほど相手も近づく。",
+                    "ミステリアスな魅力が冴える。落ち着いた大人の対応が吉。",
+                    "紫の小物が縁を引き寄せる。ふとした偶然を大切に。"
+                ],
+                music: ["「白日」 - King Gnu","「ドライフラワー」 - 優里","「夜に駆ける」 - YOASOBI","「Pretender」 - Official髭男dism","「前前前世」 - RADWIMPS","「ただ君に晴れ」 - ヨルシカ"],
+                colors: [{name:"パープル",hex:"#a18cd1"},{name:"ラベンダー",hex:"#b39ddb"},{name:"ローズ",hex:"#e56b9d"}],
+                items: ["紫のアクセサリー","小さなお守り","アロマキャンドル","ミステリアスな香水"]
+            },
+            kuro: {
+                name: "🖤 黒の箱（大人の恋）",
+                lidColor: "#3a3a3a", baseColor: "#6d6470",
+                weights: [18, 18, 20, 16, 12, 10, 6, 5],
+                comments: [
+                    "落ち着いた大人の魅力が光る日。余裕のある態度が好印象。",
+                    "駆け引きよりも本音が効く。クールさの中の優しさで勝負。",
+                    "上質なものに触れると運気アップ。自分の価値を大切に。",
+                    "シックな装いが吉。凛としたあなたに惹かれる人がいるかも。"
+                ],
+                music: ["「Pretender」 - Official髭男dism","「白日」 - King Gnu","「ドライフラワー」 - 優里","「ハッピーエンド」 - back number","「花束」 - back number","「三日月」 - 絢香"],
+                colors: [{name:"シックブラック",hex:"#3a3a3a"},{name:"パープル",hex:"#a18cd1"},{name:"シャンパンゴールド",hex:"#f6cd7b"}],
+                items: ["上品な腕時計","シックなアクセサリー","高級感のある香水","レザーの小物"]
+            }
+        };
+
+        const unseiList = ["🔥 大吉","💕 恋吉","✨ 吉","🎵 中吉","🍃 末吉","🌙 小吉","☔ 凶","💀 大凶"];
+
+        // ラッキーフード（共通プール）
+        const foodPool = [
+            "いちごのショートケーキ", "ハートのマカロン", "ふわふわパンケーキ", "タピオカミルクティー",
+            "チョコレートフォンデュ", "季節のフルーツタルト", "あったかいカフェラテ", "手作りクッキー",
+            "サクランボ", "ピンクのマシュマロ", "苺ミルク", "生チョコ",
+            "クレープ", "プリンアラモード", "フルーツサンド", "ホットチョコレート",
+            "桃のパフェ", "ミルクティー味のスイーツ", "ドーナツ", "抹茶ラテ"
+        ];
+
+        // ラッキースポット（共通プール）
+        const spotPool = [
+            "おしゃれなカフェ", "海の見える場所", "公園のベンチ", "話題のスイーツ店",
+            "図書館・本屋さん", "水族館", "映画館", "夜景スポット",
+            "神社・パワースポット", "花屋さんの近く", "美術館", "イルミネーション",
+            "駅の改札前", "レトロな喫茶店", "丘の上の展望台", "プラネタリウム",
+            "ショッピングモール", "川沿いの散歩道", "テーマパーク", "カフェのテラス席"
+        ];
+
+        // 大凶専用コメント
+        const daikyoComments = [
+            "今日はそっとしておくのが吉。無理に動かず、好きなもので心を守って。",
+            "うまくいかない日もある。焦らず、明日の自分に期待して休もう。",
+            "アクシデントに注意。連絡や約束はいつもより慎重に。深呼吸してね。",
+            "今は嵐が過ぎるのを待つとき。おいしいものを食べて早めに寝るのが正解。"
+        ];
+
+        function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        // 効果音（Web Audio APIで自前生成・著作権フリー）
+        let audioCtx = null;
+        function getCtx() {
+            audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === "suspended") audioCtx.resume();
+            return audioCtx;
+        }
+        // 単音を鳴らすヘルパー
+        function tone(freq, start, dur, vol, type) {
+            const ctx = audioCtx;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type || "triangle";
+            osc.frequency.value = freq;
+            const t = ctx.currentTime + start;
+            gain.gain.setValueAtTime(0, t);
+            gain.gain.linearRampToValueAtTime(vol, t + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + dur);
+        }
+
+        // 運勢に合わせた効果音
+        function playSound(unsei) {
+            try {
+                getCtx();
+                if (unsei.includes("大吉")) {
+                    // 豪華なファンファーレ（上昇＋和音のきらめき）
+                    const melody = [523.25, 659.25, 783.99, 1046.5, 1318.5];
+                    melody.forEach((f, i) => tone(f, i * 0.12, 0.5, 0.28, "triangle"));
+                    // 最後に和音でジャーン
+                    [523.25, 659.25, 783.99, 1046.5].forEach(f => tone(f, 0.6, 1.1, 0.18, "sawtooth"));
+                    // キラキラ装飾
+                    [1568, 2093].forEach((f, i) => tone(f, 0.75 + i * 0.1, 0.4, 0.12, "sine"));
+                } else if (unsei.includes("恋吉")) {
+                    // ときめき系（甘くふわっとした上昇＋ハートのきらめき）
+                    const tokimeki = [587.33, 739.99, 880, 1174.7]; // レ・ファ#・ラ・レ（明るく甘い）
+                    tokimeki.forEach((f, i) => tone(f, i * 0.1, 0.55, 0.24, "sine"));
+                    // ドキドキ感の柔らかい和音
+                    [659.25, 830.61, 987.77].forEach(f => tone(f, 0.45, 0.9, 0.14, "triangle"));
+                    // 高音のきらめき
+                    [1760, 2349].forEach((f, i) => tone(f, 0.6 + i * 0.12, 0.35, 0.1, "sine"));
+                } else if (unsei.includes("凶")) {
+                    // 凶・大凶 共通の最悪な不吉サウンド（低く下降＋不協和音）
+                    const doom = [220, 185, 155, 123.47, 98];
+                    doom.forEach((f, i) => tone(f, i * 0.15, 0.6, 0.3, "sawtooth"));
+                    // 不協和音でゾクッと
+                    [110, 116.5].forEach(f => tone(f, 0.7, 1.4, 0.22, "square"));
+                } else {
+                    // 通常のキラン♪
+                    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, i * 0.08, 0.5, 0.25, "triangle"));
+                }
+            } catch (e) { /* 音が出せない環境では無視 */ }
+        }
+
+        // 重み付き抽選
+        function weightedPick(weights) {
+            const total = weights.reduce((a, b) => a + b, 0);
+            let r = Math.random() * total;
+            for (let i = 0; i < weights.length; i++) {
+                if (r < weights[i]) return i;
+                r -= weights[i];
+            }
+            return weights.length - 1;
+        }
+
+        window.onload = function() {
+            displayHistory();
+            createHearts();
+        };
+
+        function createHearts() {
+            const wrap = document.getElementById("bg-hearts");
+            const emojis = ["💗", "💕", "🌸", "💖", "✨", "🤍"];
+            for (let i = 0; i < 14; i++) {
+                const s = document.createElement("span");
+                s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                s.style.left = Math.random() * 100 + "vw";
+                s.style.fontSize = (0.9 + Math.random() * 1.4) + "rem";
+                s.style.animationDuration = (8 + Math.random() * 10) + "s";
+                s.style.animationDelay = (Math.random() * 8) + "s";
+                wrap.appendChild(s);
+            }
+        }
+
+        let lastResult = null;
+
+        function drawOmikuji(boxKey) {
+            const box = boxes[boxKey];
+
+            // 箱の色を筒の演出に反映
+            document.getElementById("tube-body").style.background =
+                `linear-gradient(90deg, ${box.baseColor}, ${box.lidColor})`;
+
+            // オーバーレイ表示＆演出開始
+            const overlay = document.getElementById("opening-overlay");
+            const magicBox = document.getElementById("magic-box");
+            magicBox.classList.remove("opening");
+            overlay.classList.add("show");
+            document.getElementById("opening-text").innerText = "箱を開けています…";
+
+            // 結果を計算
+            const idx = weightedPick(box.weights);
+            const result = {
+                box: box.name,
+                unsei: unseiList[idx],
+                comment: idx === 7 ? pick(daikyoComments) : pick(box.comments),
+                music: pick(box.music),
+                color: pick(box.colors),
+                item: pick(box.items),
+                food: pick(foodPool),
+                spot: pick(spotPool)
+            };
+
+            // 揺れたあとにみくじ棒が出る＋運勢に合わせた効果音
+            setTimeout(() => {
+                magicBox.classList.add("opening");
+                playSound(result.unsei);
+            }, 1000);
+
+            // 演出後に結果表示
+            setTimeout(() => {
+                overlay.classList.remove("show");
+                showResult(result);
+            }, 1900);
+        }
+
+        function showResult(result) {
+            document.getElementById("selected-box").innerText = result.box;
+            document.getElementById("result-unsei").innerText = result.unsei;
+            document.getElementById("result-comment").innerText = result.comment;
+            document.getElementById("result-music").innerText = result.music;
+            document.getElementById("result-color").innerText = result.color.name;
+            document.getElementById("result-color-chip").style.background = result.color.hex;
+            document.getElementById("result-item").innerText = result.item;
+            document.getElementById("result-food").innerText = result.food;
+            document.getElementById("result-spot").innerText = result.spot;
+
+            // 曲を聴くボタン（YouTube検索へ）
+            const query = result.music.replace(/[「」]/g, " ").trim();
+            document.getElementById("listen-btn").href =
+                "https://www.youtube.com/results?search_query=" + encodeURIComponent(query);
+
+            const card = document.getElementById("result-card");
+            card.style.display = "block";
+            card.style.animation = "none";
+            void card.offsetWidth;
+            card.style.animation = "pop 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28)";
+            card.scrollIntoView({ behavior: "smooth", block: "center" });
+
+            lastResult = result;
+            updateShareLinks(result);
+            saveToHistory(result.unsei, result.music);
+        }
+
+        function buildShareText(r) {
+            return `💖恋愛おみくじの結果💖\n` +
+                `${r.box}\n` +
+                `運勢：${r.unsei}\n` +
+                `🎵 ${r.music}\n` +
+                `🎨 ラッキーカラー：${r.color.name}\n` +
+                `✨ ラッキーアイテム：${r.item}\n` +
+                `🍰 ラッキーフード：${r.food}\n` +
+                `📍 ラッキースポット：${r.spot}\n#恋愛おみくじ`;
+        }
+
+        function updateShareLinks(r) {
+            const text = buildShareText(r);
+            const enc = encodeURIComponent(text);
+            document.getElementById("share-x").href = `https://twitter.com/intent/tweet?text=${enc}`;
+            document.getElementById("share-line").href = `https://line.me/R/msg/text/?${enc}`;
+        }
+
+        function copyResult() {
+            if (!lastResult) return;
+            const text = buildShareText(lastResult);
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => alert("結果をコピーしました！💕"));
+            } else {
+                alert(text);
+            }
+        }
+
+        function saveToHistory(unsei, music) {
+            const now = new Date();
+            const dateStr = `${now.getMonth() + 1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            let history = JSON.parse(localStorage.getItem("love_omikuji_history")) || [];
+            history.unshift({ date: dateStr, unsei, music });
+            if (history.length > 20) history.pop();
+            localStorage.setItem("love_omikuji_history", JSON.stringify(history));
+            displayHistory();
+        }
+
+        function displayHistory() {
+            const history = JSON.parse(localStorage.getItem("love_omikuji_history")) || [];
+            const container = document.getElementById("history-container");
+            container.innerHTML = "";
+
+            if (history.length === 0) {
+                container.innerHTML = `<li class="empty-msg">まだ履歴がありません 🌱</li>`;
+                return;
+            }
+
+            history.forEach(item => {
+                const li = document.createElement("li");
+                li.className = "history-item";
+                li.innerHTML = `
+                    <span class="h-date">${item.date}</span>
+                    <span class="h-unsei">${item.unsei}</span>
+                    <span class="h-music">🎵 ${item.music}</span>
+                `;
+                container.appendChild(li);
+            });
+        }
+
+        function clearHistory() {
+            if (confirm("履歴をすべて消去しますか？")) {
+                localStorage.removeItem("love_omikuji_history");
+                displayHistory();
+            }
+        }
+    </script>
+</body>
+</html>
