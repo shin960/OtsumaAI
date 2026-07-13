@@ -1,56 +1,513 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>今日なに食べる？</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI気分まかせ御飯 - Tap & Eat</title>
+    <style>
+        /* === CSS部分 === */
+        :root {
+            --primary-color: #ff4081;
+            --bg-color: #fff0f5;
+            --card-color: #ffffff;
+            --text-color: #333;
+        }
 
-<link rel="stylesheet" href="1.css">
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
 
+        .container {
+            background: var(--card-color);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 25px;
+            color: var(--primary-color);
+        }
+
+        .section {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        /* 予算スライダー */
+        .range-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--primary-color);
+        }
+        .price-display {
+            font-weight: bold;
+            color: var(--primary-color);
+            min-width: 80px;
+            text-align: right;
+        }
+
+        /* 気分ボタン */
+        .mood-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .mood-btn {
+            background: #f0f3f8;
+            border: 2px solid transparent;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .mood-btn.selected {
+            background: #ffebeb;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .arrow {
+            font-size: 40px;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        /* ルーレット */
+        #wheel {
+            width: 220px;
+            height: 220px;
+            margin: 20px auto;
+            border-radius: 50%;
+            background: conic-gradient(
+                #ff9aa2 0deg 60deg,
+                #ffd166 60deg 120deg,
+                #90dbf4 120deg 180deg,
+                #cdb4db 180deg 240deg,
+                #a8e6cf 240deg 300deg,
+                #ffcad4 300deg 360deg
+            );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 5s cubic-bezier(.15,.8,.25,1);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+
+        #wheelText {
+            font-size: 45px;
+        }
+
+        /* ボタン */
+        .submit-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+            transition: transform 0.1s;
+        }
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* 結果枠 */
+        .result-area {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 15px;
+            background: #fff5f5;
+            border: 2px dashed var(--primary-color);
+            display: none;
+        }
+
+        #result {
+            font-size: 30px;
+            color: var(--primary-color);
+            margin: 0 0 10px 0;
+        }
+
+        #comment {
+            font-size: 18px;
+            color: #555;
+            margin: 0 0 15px 0;
+        }
+
+        .food-image-container {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .food-image {
+            width: 100%;
+            max-height: 220px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        /* ボタンレイアウト */
+        .action-btns {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .action-btn {
+            padding: 10px 10px;
+            font-size: 13px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .map-btn { background: #4caf50; color: white; }
+        .keep-btn { background: #ff9800; color: white; }
+        .retry-btn { background: #757575; color: white; grid-column: span 2; }
+
+        /* お気に入りリスト */
+        .keep-list-area {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px dashed #ccc;
+            text-align: left;
+        }
+        .keep-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .keep-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .keep-tag {
+            background: #ffe0eb;
+            color: var(--primary-color);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: bold;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
-
 <body>
 
-<h1>🍽 今日なに食べる？</h1>
+    <div class="container">
+        <h1>🍽️ AI気分まかせ御飯</h1>
 
+        <div class="section">
+            <label>① 予算の目安は？</label>
+            <div class="range-group">
+                <input type="range" id="priceRange" min="500" max="3000" step="500" value="3000">
+                <span class="price-display" id="priceValue">3,000円</span>
+            </div>
+        </div>
 
-<select id="budget">
-<option value="low">500円以内</option>
-<option value="high">1000円以上</option>
-<option value="all">何でもいい！🎲</option>
-</select>
+        <div class="section">
+            <label>② 今の気分は？</label>
+            <div class="mood-options">
+                <button class="mood-btn selected" data-mood="heavy">ガッツリ系🔥</button>
+                <button class="mood-btn" data-mood="light">軽め🍃</button>
+                <button class="mood-btn" data-mood="sweet">甘いもの！🍰</button>
+                <button class="mood-btn" data-mood="all">何でもいい🎲</button>
+            </div>
+        </div>
 
+        <div class="arrow">▼</div>
 
-<select id="mood">
-<option value="light">軽め</option>
-<option value="heavy">ガッツリ</option>
-</select>
+        <div id="wheel">
+            <div id="wheelText">🎲</div>
+        </div>
 
+        <button class="submit-btn" id="decideBtn" onclick="decideFood()">料理を提案する！</button>
 
-<div class="arrow">
-▼
-</div>
+        <div class="result-area" id="resultArea">
+            <h2 id="result"></h2>
+            <p id="comment"></p>
+            <div class="food-image-container">
+                <img id="foodImg" class="food-image" src="" alt="料理の画像">
+            </div>
+            
+            <div class="action-btns" id="actionBtns" style="display: none;">
+                <button class="action-btn map-btn" id="mapBtn">近くの店を探す 🗺️</button>
+                <button class="action-btn keep-btn" id="keepBtn">候補にキープ！ ⭐</button>
+                <button class="action-btn retry-btn" onclick="resetApp()">もう一度回す 🔄</button>
+            </div>
+        </div>
 
+        <div class="keep-list-area" id="keepListArea" style="display: none;">
+            <div class="keep-title">⭐ キープ中のご飯候補</div>
+            <div class="keep-tags" id="keepTags"></div>
+        </div>
+    </div>
 
-<div id="wheel">
+    <script>
+        const priceRange = document.getElementById('priceRange');
+        const priceValue = document.getElementById('priceValue');
+        priceRange.addEventListener('input', (e) => {
+            priceValue.textContent = parseInt(e.target.value).toLocaleString() + '円';
+        });
 
-<div id="wheelText">
-🎲
-</div>
+        let selectedMood = 'heavy';
+        const moodButtons = document.querySelectorAll('.mood-btn');
+        moodButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                moodButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedMood = btn.dataset.mood;
+            });
+        });
 
-</div>
+        // 🍔 メニューデータベース（各値段×各気分に5つずつ＝合計90種類の超巨大データ！）
+        const foodDatabase = [
+            // ==================== 500円 ====================
+            // ガッツリ🔥 (500円)
+            { name: "🥩 旨味牛丼（並盛）", searchName: "牛丼", price: 500, mood: "heavy", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQn1skGmKuGVn3V-DIMYfgbeM7OfvE5PPBH974t02kTdw&s=10", comment: "安くて早くて圧倒的満足感。タレの染みたご飯が最高！" },
+            { name: "🍛 スパイシーカレーライス", searchName: "カレー", price: 500, mood: "heavy", img: "https://images.unsplash.com/photo-1705313381636-672463bfa6fa?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8JUUzJTgyJUFCJUUzJTgzJUFDJUUzJTgzJUJDJUUzJTgzJUE5JUUzJTgyJUE0JUUzJTgyJUI5fGVufDB8fDB8fHww", comment: "ワンコインで大満足！定番のスパイシーカレー。" },
+            { name: "🍱 ほかほか唐揚げ", searchName: "お弁当", price: 500, mood: "heavy", img: "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8JUU1JTk0JTkwJUU2JThGJTlBJUUzJTgxJTkyfGVufDB8fDB8fHww", comment: "ジューシーな唐揚げを主役に。" },
+            { name: "🍜 新福風カツオ醤油ラーメン", searchName: "ラーメン", price: 500, mood: "heavy", img: "https://images.unsplash.com/photo-1557872943-16a5ac26437e?q=60&w=500", comment: "ワンコインでサクッとすする、どこか懐かしい醤油スープ。" },
+            { name: "🥟 パリパリ焼き餃子", searchName: "餃子", price: 500, mood: "heavy", img: "https://images.unsplash.com/photo-1768326119773-05cae29f4106?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fCVFOSVBNCU4MyVFNSVBRCU5MCVFMyU4MSVBOCVFMiU4MCVCQnxlbnwwfHwwfHx8MA%3D%3D", comment: "パリッとした羽根つき餃子が最強。" },
+            // 軽め🍃 (500円)
+            { name: "🍙 手作りおにぎり2個セット", searchName: "おにぎり", price: 500, mood: "light", img: "https://images.unsplash.com/photo-1562158074-d16650a22f83?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8JUUzJTgxJThBJUUzJTgxJUFCJUUzJTgxJThFJUUzJTgyJThBfGVufDB8fDB8fHww", comment: "お待たせしました！ホッとする日本のソウルフード。" },
+            { name: "🥣 フルーツグラノーラ", searchName: "グラノーラ", price: 500, mood: "light", img: "https://plus.unsplash.com/premium_photo-1674347952004-0174ea77b98c?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8JUUzJTgyJUIwJUUzJTgzJUE5JUUzJTgzJThFJUUzJTgzJUJDJUUzJTgzJUE5fGVufDB8fDB8fHww", comment: "食物繊維たっぷりで胃に優しい。サクッとヘルシーに。" },
+            { name: "🍞 こんがりトースト", searchName: "カフェ", price: 500, mood: "light", img: "https://images.unsplash.com/photo-1525351484163-7529414344d8?q=60&w=500", comment: "外はカリッと、中はふわふわ。バターの香り。" },
+            { name: "🥣 具だくさん野菜コンソメスープ", searchName: "スープ", price: 500, mood: "light", img: "https://images.unsplash.com/photo-1469307517101-0b99d8fb0c33?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fCVFMyU4MiVCOSVFMyU4MyVCQyVFMyU4MyU5N3xlbnwwfHwwfHx8MA%3D%3D", comment: "野菜の旨味がじんわり溶け込んだ温かい特製スープ。" },
+            { name: "春雨のさっぱりサラダ", searchName: "サラダ", price: 500, mood: "light", img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=60&w=500", comment: "ツルツルいける中華風春雨。お腹をリフレッシュ。" },
+            // 甘いもの！🍰 (500円)
+            { name: "🍮 とろける濃厚プリン", searchName: "スイーツ", price: 500, mood: "sweet", img: "https://plus.unsplash.com/premium_photo-1713459199001-03abf7c82730?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8JUUzJTgzJTk3JUUzJTgzJUFBJUUzJTgzJUIzfGVufDB8fDB8fHww", comment: "なめらかな口溶けと、ほろ苦いカラメルが最高。" },
+            { name: "🍦 北海道ミルクソフトクリーム", searchName: "アイス", price: 500, mood: "sweet", img: "https://plus.unsplash.com/premium_photo-1690440686714-c06a56a1511c?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8JUUzJTgyJUJEJUUzJTgzJTk1JUUzJTgzJTg4JUUzJTgyJUFGJUUzJTgzJUFBJUUzJTgzJUJDJUUzJTgzJUEwfGVufDB8fDB8fHww", comment: "濃厚なミルクの風味が口いっぱいに広がる王道アイス。" },
+            { name: "🍡 もちもち三色団子セット", searchName: "和菓子", price: 500, mood: "sweet", img: "https://media.istockphoto.com/id/1353353146/ja/%E3%82%B9%E3%83%88%E3%83%83%E3%82%AF%E3%83%95%E3%82%A9%E3%83%88/%E7%99%BD%E3%81%84%E8%83%8C%E6%99%AF%E3%81%AB%E9%85%8D%E7%BD%AE%E3%81%95%E3%82%8C%E3%81%9F%E3%83%88%E3%83%AA%E3%82%B3%E3%83%AD%E3%83%BC%E3%83%AB%E9%A4%83%E5%AD%90%E6%97%A5%E6%9C%AC%E3%81%AE%E6%98%A5%E3%81%AE%E3%82%A4%E3%83%A1%E3%83%BC%E3%82%B8.webp?a=1&b=1&s=612x612&w=0&k=20&c=kscWGowlf1gXt0S5-qe-rmEaLtHI5iCodDg4UsPssmg=", comment: "みたらしとあんこが付いた、お茶に合うお餅セット。" },
+            { name: "🍪 チョコチップクッキー皿", searchName: "カフェ", price: 500, mood: "sweet", img: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8JUU5JUE0JTg1fGVufDB8fDB8fHww", comment: "サクサク食感。焼き立ての甘い香りがたまりません。" },
+            { name: "シュークリーム＆和紅茶", searchName: "カフェ", price: 500, mood: "sweet", img: "https://images.unsplash.com/photo-1643311927292-46c6478ad4e8?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8JUUzJTgyJUI3JUUzJTgzJUE1JUUzJTgzJUJDJUUzJTgyJUFGJUUzJTgzJUFBJUUzJTgzJUJDJUUzJTgzJUEwfGVufDB8fDB8fHwwq=60&w=500", comment: "カスタードがたっぷり詰まった洋菓子の定番。" },
 
+            // ==================== 1000円 ====================
+            // ガッツリ🔥 (1000円)
+            { name: "🍔 厚切りハンバーガーセット", searchName: "ハンバーガー", price: 1000, mood: "heavy", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=60&w=500", comment: "ポテトとドリンクがついた、ボリューム満点のセット！" },
+            { name: "🍜 特製濃厚豚骨ラーメン", searchName: "ラーメン", price: 1000, mood: "heavy", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?q=60&w=500", comment: "ガッツリの頂点。クリーミーなスープが麺に絡みます。" },
+            { name: "🥩 自家製ローストビーフ丼", searchName: "ローストビーフ", price: 1000, mood: "heavy", img: "https://plus.unsplash.com/premium_photo-1723672929404-36ba6ed8ab50?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8JUUzJTgzJUFEJUUzJTgzJUJDJUUzJTgyJUI5JUUzJTgzJTg4JUUzJTgzJTkzJUUzJTgzJUJDJUUzJTgzJTk1fGVufDB8fDB8fHww?q=60&w=500", comment: "お肉を贅沢に重ねた、見た目のインパクトも抜群の丼。" },
+            { name: "🥡 本格四川麻婆豆腐定食", searchName: "中華", price: 1000, mood: "heavy", img: "https://images.unsplash.com/photo-1769065647078-f067eb768035?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8JUU5JUJBJUJCJUU1JUE5JTg2JUU4JUIxJTg2JUU4JTg1JTkwfGVufDB8fDB8fHww?q=60&w=500", comment: "シビれる辛さが病みつきに。白ご飯が進みすぎます！" },
+            { name: "🥪 とろける特製チーズドッグ", searchName: "ホットドッグ", price: 1000, mood: "heavy", img: "https://plus.unsplash.com/premium_photo-1713793236612-50c9bfedbe07?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8JUUzJTgzJTlCJUUzJTgzJTgzJUUzJTgzJTg4JUUzJTgzJTg5JUUzJTgzJTgzJUUzJTgyJUIwfGVufDB8fDB8fHww?q=60&w=500", comment: "伸びるチーズとジューシーなソーセージが最強。" },
+            // 軽め🍃 (1000円)
+            { name: "🥗 完熟アボカドの彩りサラダ", searchName: "サラダ", price: 1000, mood: "light", img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=60&w=500", comment: "オリーブオイルとナッツで仕上げた健康ヘルシープレート。" },
+            { name: "🥪 パストラミチキンのサンドイッチ", searchName: "サンドイッチ", price: 1000, mood: "light", img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?q=60&w=500", comment: "萌え断！フレッシュな野菜とお肉をサクッとサンド。" },
+            { name: "🍲 蒸し鶏とキノコの薬膳雑炊", searchName: "雑炊", price: 1000, mood: "light", img: "https://images.unsplash.com/photo-1547592180-85f173990554?q=60&w=500", comment: "出汁の旨みが体に染み渡る。疲れた時におすすめ。" },
+            { name: "🥢 つるつる本格おろしうどん", searchName: "うどん", price: 1000, mood: "light", img: "https://images.unsplash.com/photo-1519915028121-7d3463d20b13?q=60&w=500", comment: "大根おろしとすだちで、さっぱりツルッと頂きます。" },
+            { name: "🌯 スモークサーモンのガレット", searchName: "カフェ", price: 1000, mood: "light", img: "https://images.unsplash.com/photo-1525351484163-7529414344d8?q=60&w=500", comment: "ガレット生地で包んだ上品で軽めなおしゃれランチ。" },
+            // 甘いもの！🍰 (1000円)
+            { name: "🍩 カラフルドーナツ3個セット", searchName: "ドーナツ", price: 1000, mood: "sweet", img: "https://images.unsplash.com/photo-1551024601-bec78aea704b?q=60&w=500", comment: "見た目も華やか。おやつタイムの主役ボックス！" },
+            { name: "🍓 特製いちごのショートケーキ", searchName: "ケーキ", price: 1000, mood: "sweet", img: "https://images.unsplash.com/photo-1602663491496-73f07481dbea?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8JUUzJTgyJUI3JUUzJTgzJUE3JUUzJTgzJUJDJUUzJTgzJTg4JUUzJTgyJUIxJUUzJTgzJUJDJUUzJTgyJUFEfGVufDB8fDB8fHww?q=60&w=500", comment: "甘酸っぱいいちごの上品な美味しさ。絶対外さない王道。" },
+            { name: "🧁 しっとりフォンダンショコラ", searchName: "カフェ", price: 1000, mood: "sweet", img: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?q=60&w=500", comment: "中から濃厚な抹茶ソースがトロリと溢れ出します。" },
+            { name: "🧇 チョコバナナワッフル", searchName: "ワッフル", price: 1000, mood: "sweet", img: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=60&w=500", comment: "サクサクのワッフルにアイスとバナナを豪快にトッピング。" },
+            { name: "🍧 かき氷", searchName: "甘味処", price: 1000, mood: "sweet", img: "https://images.unsplash.com/photo-1715640476096-24aedd353e5e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8JUUzJTgxJThCJUUzJTgxJThEJUU2JUIwJUI3fGVufDB8fDB8fHww?q=60&w=500", comment: "ふんわり削った氷に特製シロップを添えて。" },
 
-<button onclick="decideFood()">
-ルーレット開始！
-</button>
+            // ==================== 1500円 ====================
+            // ガッツリ🔥 (1500円)
+            { name: "🍛 揚げたてサクサクカツカレー", searchName: "カレー", price: 1500, mood: "heavy", img: "https://plus.unsplash.com/premium_photo-1712758599487-9b0e01433430?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8JUUzJTgyJUFCJUUzJTgzJTg0JUUzJTgyJUFCJUUzJTgzJUFDJUUzJTgzJUJDfGVufDB8fDB8fHww?q=60&w=500", comment: "ジューシーなトンカツとコク深いスパイスが奇跡の融合。" },
+            { name: "🥩 炭火焼きねぎ塩牛タン丼", searchName: "牛タン", price: 1500, mood: "heavy", img: "https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=500", comment: "コリコリの牛タンに特製のネギ塩ダレをたっぷり絡めて。" },
+            { name: "🥓 大盛り厚切りチャーシュー麺", searchName: "ラーメン", price: 1500, mood: "heavy", img: "https://images.unsplash.com/photo-1557872943-16a5ac26437e?q=80&w=500", comment: "器を埋め尽くす肉！圧倒的なパワーチャーシューです。" },
+            { name: "🍔 チーズ増マシ！ダブルバーガー", searchName: "ハンバーガー", price: 1500, mood: "heavy", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=500", comment: "パティが2枚に濃厚チーズ。ガッツリの期待を裏切りません。" },
+            { name: "🍗 本格韓国ヤンニョムチキン皿", searchName: "韓国料理", price: 1500, mood: "heavy", img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=500", comment: "甘辛いタレとサクサクの衣が最高のフライドチキン。" },
+            // 軽め🍃 (1500円)
+            { name: "🥢 天ぷら付き本格とろろ蕎麦", searchName: "蕎麦", price: 1500, mood: "light", img: "https://images.unsplash.com/photo-1636933242310-15d6318326f5?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8JUUzJTgxJTlEJUUzJTgxJUIwfGVufDB8fDB8fHww?q=60&w=500", comment: "ツルッとした喉越し。サクサクの海老天もセットです。" },
+            { name: "🥗 生ハムとカマンベールのサラダ", searchName: "イタリアン", price: 1500, mood: "light", img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=500", comment: "上質な生ハムの塩気とマイルドなチーズの贅沢サラダ。" },
+            { name: "🥣 クリーミー海老グラタン", searchName: "洋食", price: 1500, mood: "light", img: "https://images.unsplash.com/photo-1609183228792-9ae095426310?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8JUUzJTgyJUIwJUUzJTgzJUE5JUUzJTgyJUJGJUUzJTgzJUIzfGVufDB8fDB8fHww?q=80&w=500", comment: "ホワイトソースが優しい味わい。ぷりぷりの海老が美味。" },
+            { name: "🥪 スモークサーモンとアボカドベーグル", searchName: "カフェ", price: 1500, mood: "light", img: "https://plus.unsplash.com/premium_photo-1691598048488-04d4d62286cc?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8JUUzJTgzJTk5JUUzJTgzJUJDJUUzJTgyJUIwJUUzJTgzJUFCfGVufDB8fDB8fHww?q=80&w=500", comment: "もちもちのベーグルに最高の組み合わせを挟みました。" },
+            { name: "🍅 完熟トマトとバジルのカプレーゼ", searchName: "イタリアン", price: 1500, mood: "light", img: "https://images.unsplash.com/photo-1595587870672-c79b47875c6a?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8JUUzJTgyJUFCJUUzJTgzJTk3JUUzJTgzJUFDJUUzJTgzJUJDJUUzJTgyJUJDfGVufDB8fDB8fHww?q=80&w=500", comment: "フレッシュモッツァレラが爽やか。軽く食べたいお昼に。" },
+            // 甘いもの！🍰 (1500円)
+            { name: "🥞 メープル極厚ふわふわパンケーキ", searchName: "パンケーキ", price: 1500, mood: "sweet", img: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=80&w=500", comment: "バターとたっぷりのシロップで脳に最高の糖分を！" },
+            { name: "🍫 濃厚ガトーショコラ・バニラ添え", searchName: "カフェ", price: 1500, mood: "sweet", img: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?q=80&w=500", comment: "ずっしり重厚なカカオの深み。冷たいアイスと一緒に。" },
+            { name: "🍓 贅沢ベリーパフェ", searchName: "パフェ", price: 1500, mood: "sweet", img: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?q=80&w=500", comment: "甘酸っぱいベリーソースがたっぷりかかったご褒美パフェ。" },
+            { name: "🍰 贅沢タルト", searchName: "ケーキ", price: 1500, mood: "sweet", img: "https://images.unsplash.com/photo-1519915028121-7d3463d20b13?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8JUUzJTgyJUJGJUUzJTgzJUFCJUUzJTgzJTg4fGVufDB8fDB8fHww?q=80&w=500", comment: "サクサクのタルト生地に濃厚なクリームがたっぷり。" },
+            { name: "🍩 焼き立てカスタードチュロス皿", searchName: "カフェ", price: 1500, mood: "sweet", img: "https://images.unsplash.com/photo-1734989771617-ead0d1e49639?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fCVFMyU4MyU4MSVFMyU4MyVBNSVFMyU4MyVBRCVFMyU4MiVCOXxlbnwwfHwwfHx8MA%3D%3D?q=80&w=500", comment: "外はカリッと、シナモンシュガーの香りが広がります。" },
 
+            // ==================== 2000円 ====================
+            // ガッツリ🔥 (2000円)
+            { name: "🍕 チーズ溺れる濃厚ピザ", searchName: "ピザ", price: 2000, mood: "heavy", img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=60&w=500", comment: "とろけるチーズの洪水！みんなで大満足の一枚。" },
+            { name: "🥩 熟成ハラミステーキ重", searchName: "ステーキ", price: 2000, mood: "heavy", img: "https://images.unsplash.com/photo-1544025162-d76694265947?q=60&w=500", comment: "柔らかいお肉がご飯の上にビッシリ。贅沢ガッツリ飯。" },
+            { name: "🍛 特製黒毛和牛ビーフカレー", searchName: "カレー", price: 2000, mood: "heavy", img: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?q=60&w=500", comment: "じっくり煮込んだ和牛が口の中でとろけます。" },
+            { name: "🍖 炭火焼き特大バックリブ", searchName: "肉料理", price: 2000, mood: "heavy", img: "https://images.unsplash.com/photo-1544025162-d76694265947?q=60&w=500", comment: "骨付き肉を豪快に！バーベキューソースが絶品です。" },
+            { name: "🍱 海老天モリモリ特上天丼", searchName: "天丼", price: 2000, mood: "heavy", img: "https://images.unsplash.com/photo-1593357849627-cbbc9fda6b05?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8JUU1JUE0JUE5JUU0JUI4JUJDfGVufDB8fDB8fHww?q=60&w=500", comment: "そびえ立つ大きな海老天！甘辛いタレが染みています。" },
+            // 軽め🍃 (2000円)
+            { name: "🍣 本まぐろ入り新鮮にぎり寿司（上）", searchName: "寿司", price: 2000, mood: "light", img: "https://images.unsplash.com/photo-1563612116625-3012372fccce?q=60&w=500", comment: "さっぱり贅沢の定番。新鮮なネタが並びます。" },
+            { name: "🐟 特上鯛茶漬け御膳", searchName: "日本料理", price: 2000, mood: "light", img: "https://images.unsplash.com/photo-1521136686176-732808c0fcc1?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8JUU4JThDJUI2JUU2JUJDJUFDJUUzJTgxJTkxfGVufDB8fDB8fHww?q=60&w=500", comment: "上品な真鯛の刺身に、特製のお出汁をかけてサラサラと。" },
+            { name: "🥗 スモークサーモンとハーブの特製サラダ", searchName: "サラダ", price: 2000, mood: "light", img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=60&w=500", comment: "脂ののったサーモンと新鮮ハーブのプレミアムサラダ。" },
+            { name: "🥣 地鶏の薬膳コラーゲンスープ鍋", searchName: "鍋", price: 2000, mood: "light", img: "https://plus.unsplash.com/premium_photo-1706003920144-ca73554a6801?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8JUUzJTgyJUI5JUUzJTgzJUJDJUUzJTgzJTk3JUU5JThEJThCfGVufDB8fDB8fHww?q=60&w=500", comment: "旨味が凝縮されたスープ。軽めなのに満足度は抜群。" },
+            { name: "🍞 生ハムカプレーゼのフォカッチャサンド", searchName: "カフェ", price: 2000, mood: "light", img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?q=60&w=500", comment: "高級オリーブオイルが香る、リッチなサンドイッチ。" },
+            // 甘いもの！🍰 (2000円)
+            { name: "🍦 特製ピスタチオとベリーのパフェ", searchName: "パフェ", price: 2000, mood: "sweet", img: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?q=60&w=500", comment: "アイスに焼き菓子、何層にも重なったスイーツの芸術品。" },
+            { name: "🥞 フルーツモリモリハワイアンパンケーキ", searchName: "パンケーキ", price: 2000, mood: "sweet", img: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=60&w=500", comment: "イチゴやバナナ、ベリーがこれでもかと乗った夢の皿。" },
+            { name: "🍰 アフタヌーンティースイーツスタンド", searchName: "カフェ", price: 2000, mood: "sweet", img: "https://images.unsplash.com/photo-1707059789042-2caccf581099?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fCVFMyU4MiVBMiVFMyU4MyU5NSVFMyU4MiVCRiVFMyU4MyU4QyVFMyU4MyVCQyVFMyU4MyVCMyVFMyU4MyU4NiVFMyU4MSU4M3xlbnwwfHwwfHx8MA%3D%3D?q=60&w=500", comment: "可愛いミニケーキが色々。お姫様気分のおやつタイム。" },
+            { name: "🍫 ベルギー生チョコブラウニーのアソート", searchName: "カフェ", price: 2000, mood: "sweet", img: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?q=60&w=500", comment: "カカオ70%の超濃厚ブラウニーを贅沢に食べ比べ。" },
+            { name: "🍪 窯出しアップルパイ・マカダミア添え", searchName: "カフェ", price: 2000, mood: "sweet", img: "https://images.unsplash.com/photo-1621743478914-cc8a86d7e7b5?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8JUUzJTgyJUEyJUUzJTgzJTgzJUUzJTgzJTk3JUUzJTgzJUFCJUUzJTgzJTkxJUUzJTgyJUE0fGVufDB8fDB8fHww?q=60&w=500", comment: "アツアツのパイと、冷たいバニラアイスが最高の相性。" },
 
-<h2 id="result"></h2>
+            // ==================== 2500円 ====================
+            // ガッツリ🔥 (2500円)
+            { name: "🥩 炭火焼き黒毛和牛カルビ重", searchName: "焼肉", price: 2500, mood: "heavy", img: "https://images.unsplash.com/photo-1544025162-d76694265947?q=60&w=500", comment: "極上の和牛カルビ。タレが染みたご飯だけで3杯いけます。" },
+            { name: "🦐 特大ロブスターのガーリックパスタ", searchName: "イタリアン", price: 2500, mood: "heavy", img: "https://plus.unsplash.com/premium_photo-1664472619078-9db415ebef44?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8JUUzJTgzJTkxJUUzJTgyJUI5JUUzJTgyJUJGfGVufDB8fDB8fHwwq=60&w=500", comment: "豪快なロブスターの旨みがオイルに溶け出した絶品パスタ。" },
+            { name: "🍖 熟成三元豚の極厚ロースカツ御膳", searchName: "とんかつ", price: 2500, mood: "heavy", img: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?q=60&w=500", comment: "圧倒的な厚み。サクッと噛めば甘い脂がジュワッと広がります。" },
+            { name: "🍔 プレミアムトリュフバーガーセット", searchName: "ハンバーガー", price: 2500, mood: "heavy", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=60&w=500", comment: "高級トリュフオイルを贅沢に使った大人の超プレミアムバーガー。" },
+            { name: "🍜 特上フカヒレ姿煮あんかけ麺", searchName: "中華", price: 2500, mood: "heavy", img: "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8JUU5JUJBJUJBfGVufDB8fDB8fHww?q=60&w=500", comment: "贅沢の極み。コラーゲンたっぷりのとろけるスープ。" },
+            // 軽め🍃 (2500円)
+            { name: "🍣 特選北海海鮮丼（いくら・カニ）", searchName: "海鮮丼", price: 2500, mood: "light", img: "https://images.unsplash.com/photo-1734313276347-abd532a3ed13?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8JUU2JUI1JUI3JUU5JUFFJUFFJUU0JUI4JUJDfGVufDB8fDB8fHww?q=60&w=500", comment: "海の宝石箱！さっぱりしているのに贅沢感がすごいです。" },
+            { name: "🥢 老舗割烹の天ぷら蕎麦御膳", searchName: "蕎麦", price: 2500, mood: "light", img: "https://images.unsplash.com/photo-1636933242310-15d6318326f5?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8JUUzJTgxJTlEJUUzJTgxJUIwfGVufDB8fDB8fHww?q=60&w=500", comment: "透き通る出汁と、職人が揚げた天ぷらの洗練された一皿。" },
+            { name: "🥗 ローストチキンとナッツの美肌サラダ", searchName: "サラダ", price: 2500, mood: "light", img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=60&w=500", comment: "高級スーパーの特製デリ風。栄養バランスが完璧です。" },
+            { name: "🥣 クリーミーポルチーニ茸のリゾット", searchName: "イタリアン", price: 2500, mood: "light", img: "https://plus.unsplash.com/premium_photo-1695240028448-9a8bf3e164f5?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8JUUzJTgzJUFBJUUzJTgyJUJFJUUzJTgzJTgzJUUzJTgzJTg4fGVufDB8fDB8fHww?q=60&w=500", comment: "世界三大きのこの香りが広がる、軽めかつ超上品なリゾット。" },
+            { name: "🥪 ローストビーフの贅沢クロワッサンサンド", searchName: "カフェ", price: 2500, mood: "light", img: "https://plus.unsplash.com/premium_photo-1661743823829-326b78143b30?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8JUUzJTgyJUFGJUUzJTgzJUFEJUUzJTgzJUFGJUUzJTgzJTgzJUUzJTgyJUI1JUUzJTgzJUIzfGVufDB8fDB8fHww?q=60&w=500", comment: "サクサクのクロワッサンにお肉をたくさん挟んだ特製サンド。" },
+            // 甘いもの！🍰 (2500円)
+            { name: "🍡 京都老舗茶舗の高級和菓子セット", searchName: "和菓子", price: 2500, mood: "sweet", img: "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8JUU1JTkyJThDJUU4JThGJTkzJUU1JUFEJTkwfGVufDB8fDB8fHww?q=60&w=500", comment: "上品なあんこの甘み。高級宇治抹茶と一緒に風情を愉しむ。" },
+            { name: "🍰 季節の特選フルーツタルト", searchName: "タルト", price: 2500, mood: "sweet", img: "https://images.unsplash.com/photo-1614174486496-344ef3e9d870?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8JUUzJTgyJUJGJUUzJTgzJUFCJUUzJTgzJTg4fGVufDB8fDB8fHww?q=60&w=500", comment: "有名パティスリーの逸品。宝石のように輝くフルーツが満載。" },
+            { name: "🍦 プレミアムショコラマウンテンパフェ", searchName: "パフェ", price: 2500, mood: "sweet", img: "https://images.unsplash.com/photo-1600648832373-6f5e75b71ce3?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8JUUzJTgzJTgxJUUzJTgzJUE3JUUzJTgyJUIzJUUzJTgzJTkxJUUzJTgzJTk1JUUzJTgyJUE3fGVufDB8fDB8fHww?q=60&w=500", comment: "高級チョコレートを乗せた、超贅沢なパフェ。" },
+            { name: "🥞 マカダミアナッツソースの純白パンケーキ", searchName: "パンケーキ", price: 2500, mood: "sweet", img: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=60&w=500", comment: "真っ白な濃厚ソースが包み込む、特別な日のパンケーキ。" },
+            { name: "🍫 高級生チョコとマカロンの盛合せプレート", searchName: "カフェ", price: 2500, mood: "sweet", img: "https://images.unsplash.com/photo-1596350351182-c2ce5b74a758?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8JUUzJTgzJTgxJUUzJTgzJUE3JUUzJTgyJUIzJUUzJTgzJTlFJUUzJTgyJUFCJUUzJTgzJUFEJUUzJTgzJUIzfGVufDB8fDB8fHww?q=60&w=500", comment: "最高のブランドチョコを味わう贅沢空間。" },
 
-<p id="comment"></p>
+            // ==================== 3000円 ====================
+            // ガッツリ🔥 (3000円)
+            { name: "🥩 特選A5ランクサーロインステーキ", searchName: "ステーキ", price: 3000, mood: "heavy", img: "https://images.unsplash.com/photo-1544025162-d76694265947?q=60&w=500", comment: "最高金額！圧倒的な肉汁と柔らかさで至福のひとときを。" },
+            { name: "🍛 高級飛騨牛の極みゴロゴロカレー", searchName: "カレー", price: 3000, mood: "heavy", img: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8JUUzJTgyJUFCJUUzJTgzJUFDJUUzJTgzJUJDfGVufDB8fDB8fHww?q=60&w=500", comment: "もはやステーキが入っているレベルの、最高峰ブランド牛カレー。" },
+            { name: "🍕 トリプルミート＆クアトロピザ（特大）", searchName: "ピザ", price: 3000, mood: "heavy", img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=60&w=500", comment: "あらゆるお肉とチーズをのせた、宅配ピザの最上級クラス。" },
+            { name: "🍱 高級うな重（国産鰻・特上）", searchName: "うなぎ", price: 3000, mood: "heavy", img: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?q=60&w=500", comment: "ふっくら焼き上げた国産うなぎ。秘伝のタレが香ばしい。" },
+            { name: "🥓 特製アワビとチャーシューの中華極み鍋", searchName: "中華", price: 3000, mood: "heavy", img: "https://images.unsplash.com/photo-1725443433696-61cdfde7f611?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8JUU0JUI4JUFEJUU4JThGJUFGJUU5JThEJThCfGVufDB8fDB8fHww?q=80&w=500", comment: "超豪華食材が大集結！今日のご飯は完全なお祭りです。" },
+            // 軽め🍃 (3000円)
+            { name: "🍣 本まぐろ大トロ入り極上にぎり寿司", searchName: "寿司", price: 3000, mood: "light", img: "https://images.unsplash.com/photo-1563612116625-3012372fccce?q=80&w=500", comment: "口に入れた瞬間とろける大トロ。さっぱり贅沢の究極形。" },
+            { name: "🥢 特大ズワイガニのしゃぶしゃぶ御膳", searchName: "カニ料理", price: 3000, mood: "light", img: "https://plus.unsplash.com/premium_photo-1661412855930-2936cf94e57a?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8JUUzJTgxJTk3JUUzJTgyJTgzJUUzJTgxJUI2JUUzJTgxJTk3JUUzJTgyJTgzJUUzJTgxJUI2fGVufDB8fDB8fHww?q=60&w=500", comment: "甘み抜群のカニをサッと出汁にくぐらせて。贅沢の極みです。" },
+            { name: "🥗 ズワイガニとアボカドのプレミアムサラダ", searchName: "イタリアン", price: 3000, mood: "light", img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=500", comment: "カニの身がどっさり！これ以上ない贅沢サラダプレート。" },
+            { name: "🥣 天然ウニのクリームスープパスタ", searchName: "イタリアン", price: 3000, mood: "light", img: "https://plus.unsplash.com/premium_photo-1664472752075-d5b2b3de0a88?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fCVFMyU4MiVCOSVFMyU4MyVCQyVFMyU4MyU5N3xlbnwwfHwwfHx8MA%3D%3D?q=80&w=500", comment: "海のミルクと言われるウニのコクが凝縮された超上品パスタ。" },
+            { name: "🥪 トリフ香る極上ステーキサンドイッチ", searchName: "カフェ", price: 3000, mood: "light", img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?q=80&w=500", comment: "柔らかいヒレ肉を贅沢に挟んだ、最高級サンドイッチ。" },
+            // 甘いもの！🍰 (3000円)
+            { name: "🍓 最高級あまおう苺のプレミアムパフェ", searchName: "パフェ", price: 3000, mood: "sweet", img: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?q=80&w=500", comment: "1パック分のブランド苺を贅沢に使用。これぞパフェの最高峰。" },
+            { name: "🥞 高級純金箔が舞うショコラパンケーキ", searchName: "パンケーキ", price: 3000, mood: "sweet", img: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?q=80&w=500", comment: "一流パティシエ特製。最高の一日を締めくくるための王のスイーツ。" },
+            { name: "🍰 パティスリー特製高級ホールケーキ(ミニ)", searchName: "ケーキ", price: 3000, mood: "sweet", img: "https://images.unsplash.com/photo-1626263468007-a9e0cf83f1ac?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8JUUzJTgzJTlCJUUzJTgzJUJDJUUzJTgzJUFCJUUzJTgyJUIxJUUzJTgzJUJDJUUzJTgyJUFEfGVufDB8fDB8fHww?q=80&w=500", comment: "独り占めしてもよし！最高級生クリームの夢のホール。" },
+            { name: "🍫 トリュフチョコと最高級紅茶の貴族セット", searchName: "カフェ", price: 3000, mood: "sweet", img: "https://plus.unsplash.com/premium_photo-1700072294901-bd776f350909?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8JUUzJTgzJTg4JUUzJTgzJUFBJUUzJTgzJUE1JUUzJTgzJTk1fGVufDB8fDB8fHww?q=80&w=500", comment: "一粒数百円のチョコと、歴史ある茶葉の最強ラグジュアリーセット。" },
+            { name: "🍪 特選ピスタチオのマカロンタワーボックス", searchName: "マカロン", price: 3000, mood: "sweet", img: "https://images.unsplash.com/photo-1531594652722-292a43e752b4?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fCVFMyU4MyU5RSVFMyU4MiVBQiVFMyU4MyVBRCVFMyU4MyVCM3xlbnwwfHwwfHx8MA%3D%3D?q=80&w=500", comment: "サクふわマカロンが美しく並んだ、超贅沢なスイーツBOX。" }
+        ];
 
+        let currentAngle = 0;
+        let keepList = [];
 
-<script src="1.js"></script>
+        function decideFood() {
+            const maxPrice = parseInt(priceRange.value);
 
+            let candidates = [];
+            if (selectedMood === "all") {
+                candidates = foodDatabase.filter(food => food.price <= maxPrice);
+            } else {
+                candidates = foodDatabase.filter(food => food.price <= maxPrice && food.mood === selectedMood);
+            }
+            
+            if (candidates.length === 0) {
+                candidates = foodDatabase.filter(food => food.price <= maxPrice);
+            }
+
+            const finalChoice = candidates[Math.floor(Math.random() * candidates.length)];
+
+            const wheel = document.getElementById("wheel");
+            const foodImg = document.getElementById("foodImg");
+            const resultArea = document.getElementById("resultArea");
+            const decideBtn = document.getElementById("decideBtn");
+            const actionBtns = document.getElementById("actionBtns");
+
+            decideBtn.disabled = true;
+            actionBtns.style.display = "none";
+
+            const additionalAngle = 360 * 5 + Math.floor(Math.random() * 360);
+            currentAngle += additionalAngle; 
+            wheel.style.transform = `rotate(${currentAngle}deg)`;
+
+            resultArea.style.display = "block";
+            document.getElementById("result").innerText = "🎲 考え中...";
+            document.getElementById("comment").innerText = "";
+            foodImg.style.display = "none";
+
+            setTimeout(() => {
+                document.getElementById("result").innerText = finalChoice.name;
+                document.getElementById("comment").innerText = finalChoice.comment;
+
+                foodImg.src = finalChoice.img;
+                foodImg.style.display = "block";
+
+                const mapBtn = document.getElementById("mapBtn");
+                mapBtn.onclick = () => {
+                    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(finalChoice.searchName)}`, '_blank');
+                };
+
+                const keepBtn = document.getElementById("keepBtn");
+                keepBtn.onclick = () => {
+                    if (!keepList.includes(finalChoice.name)) {
+                        keepList.push(finalChoice.name);
+                        updateKeepListUI();
+                    }
+                    keepBtn.innerText = "キープしました！⭐";
+                    keepBtn.disabled = true;
+                };
+                
+                keepBtn.innerText = "候補にキープ！ ⭐";
+                keepBtn.disabled = false;
+
+                actionBtns.style.display = "flex";
+                decideBtn.disabled = false;
+            }, 5000);
+        }
+
+        function updateKeepListUI() {
+            const keepListArea = document.getElementById("keepListArea");
+            const keepTags = document.getElementById("keepTags");
+            keepTags.innerHTML = "";
+            
+            keepList.forEach(foodName => {
+                const tag = document.createElement("div");
+                tag.className = "keep-tag";
+                tag.innerText = foodName;
+                keepTags.appendChild(tag);
+            });
+
+            if (keepList.length > 0) {
+                keepListArea.style.display = "block";
+            }
+        }
+
+        function resetApp() {
+            document.getElementById("resultArea").style.display = "none";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
 </body>
 </html>

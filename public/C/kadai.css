@@ -1,0 +1,126 @@
+body {
+    font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+    background: linear-gradient(135deg, #f3efe6, #e8f3f0);
+    text-align: center;
+    padding: 30px;
+    color: #4a3f35;
+}
+
+/* タイトルをジブリ風に */
+h1 {
+    font-size: 36px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 25px;
+    color: #3d372f;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+/* クイズカード */
+.quiz-box {
+    background: #ffffffcc;
+    backdrop-filter: blur(6px);
+    padding: 25px;
+    margin: 0 auto;
+    width: 70%;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    animation: fadeIn 0.6s ease;
+}
+
+/* 選択肢ボタン */
+.choice-btn {
+    padding: 12px;
+    font-size: 18px;
+    background: #f0e8d9;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.25s;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+.choice-btn:hover {
+    background: #e3d7c3;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* 結果表示 */
+.result {
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* 非表示 */
+.hidden {
+    display: none;
+}
+
+/* ポスター画像 */
+.poster {
+    width: 220px;
+    border-radius: 12px;
+    margin-top: 20px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+    animation: fadeIn 0.6s ease;
+}
+
+/* 情報ボックス */
+#infoBox {
+    margin-top: 25px;
+    padding: 20px;
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+    background: #ffffffdd;
+    border-radius: 14px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.6s ease;
+}
+
+/* アニメーション */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.hidden {
+  display: none;
+}
+
+.fade {
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.show {
+  opacity: 1;
+  transition: opacity 0.5s;
+}
+
+.confetti {
+    position: fixed;
+    top: -10px;
+    width: 10px;
+    height: 10px;
+    opacity: 0.9;
+    border-radius: 2px;
+    animation-name: fall;
+    animation-timing-function: linear;
+}
+
+@keyframes fall {
+    to {
+        transform: translateY(100vh) rotate(360deg);
+    }
+}
+
+#timer {
+    font-size: 20px;
+    font-weight: bold;
+    color: red;
+    margin-bottom: 10px;
+}
