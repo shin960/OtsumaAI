@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube 音ゲー</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            overflow: hidden;
+        }
+        #setup {
+            margin-top: 50px;
+        }
+        input {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        #game-controls {
+            margin: 10px;
+            font-size: 20px;
+        }
+        #game-container {
+            display: none;
+            position: relative;
+            width: 800px;
+            height: 600px;
+            margin: 20px auto;
+            background: #222;
+            border: 2px solid #555;
+        }
+        /* YouTube動画を背景に配置 */
+        #player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        /* 音ゲーのレーン */
+        #lanes {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: space-around;
+            z-index: 2;
+        }
+        .lane {
+            width: 20%;
+            height: 100%;
+            border-left: 1px dashed #444;
+            border-right: 1px dashed #444;
+            position: relative;
+        }
+        /* 判定ライン */
+        .judge-line {
+            position: absolute;
+            bottom: 50px;
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.5);
+        }
+        /* ノーツ（流れてくるノーツ：丸型） */
+        .note {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            left: calc(50% - 20px);
+            background: #00ffcc;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #00ffcc;
+        }
+        .key-guide {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        /* 一時停止中のオーバーレイ表示 */
+        #pause-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            font-size: 36px;
+            font-weight: bold;
+            line-height: 600px;
+            z-index: 10;
+        }
+        /* 判定・コンボのエフェクト表示エリア */
+        #effect-container {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            pointer-events: none;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+        #judge-display {
+            font-size: 48px;
+            margin-bottom: 5px;
+            transition: all 0.1s ease-out;
+        }
+        #combo-display {
+            font-size: 28px;
+            color: #ffd700;
+        }
+        /* 各判定の色定義 */
+        .perfect { color: #ffeb3b; }
+        .great { color: #ff9800; }
+        .good { color: #4caf50; }
+        .miss { color: #f44336; }
+    </style>
+</head>
+<body>
+
+    <div id="setup">
+        <h1>YouTube 音ゲー</h1>
+        <p>YouTubeのURLを入力してください：</p>
+        <input type="text" id="url-input" placeholder="https://www.youtube.com/watch?v=...">
+        <button onclick="startGame()">ゲームスタート</button>
+    </div>
+
+    <div id="game-controls">
+        <span style="margin-right: 20px;">SCORE: <span id="score-val">0</span></span>
+        <button id="pause-btn" onclick="togglePause()" style="display:none;">一時停止 (Space)</button>
+    </div>
+
+    <div id="game-container">
+        <div id="pause-overlay">PAUSE</div>
+
+        <div id="effect-container">
+            <div id="judge-display"></div>
+            <div id="combo-display"></div>
+        </div>
+
+        <div id="player"></div>
+        
+        <div id="lanes">
+            <div class="lane" id="lane-0"><div class="judge-line"></div><div class="key-guide">D</div></div>
+            <div class="lane" id="lane-1"><div class="judge-line"></div><div class="key-guide">F</div></div>
+            <div class="lane" id="lane-2"><div class="judge-line"></div><div class="key-guide">J</div></div>
+            <div class="lane" id="lane-3"><div class="judge-line"></div><div class="key-guide">K</div></div>
+        </div>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        let player;
+        let gameInterval;
+        let score = 0;
+        let combo = 0;
+        let isPaused = false;
+        const keys = ['d', 'f', 'j', 'k'];
+        let notes = [];
+        const judgeLineY = 510; // ノーツの中心が判定ライン(550px)に重なる計算（550 - ノーツ半径20 = 530px付近がジャスト）
+
+        function onYouTubeIframeAPIReady() {}
+
+        function extractVideoId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function startGame() {
+            const url = document.getElementById('url-input').value;
+            const videoId = extractVideoId(url);
+
+            if (!videoId) {
+                alert('有効なYouTubeのURLを入力してください。');
+                return;
+            }
+
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            document.getElementById('pause-btn').style.display = 'inline-block';
+
+            player = new YT.Player('player', {
+                videoId: videoId,
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 0,
+                    'disablekb': 1,
+                    'modestbranding': 1,
+                    'rel': 0
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            event.target.playVideo();
+            gameInterval = setInterval(gameLoop, 1000 / 60);
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                clearInterval(gameInterval);
+                alert(`ゲーム終了！ スコア: ${score}`);
+            }
+        }
+
+        function togglePause() {
+            if (!player) return;
+
+            if (!isPaused) {
+                isPaused = true;
+                player.pauseVideo();
+                clearInterval(gameInterval);
+                document.getElementById('pause-overlay').style.display = 'block';
+                document.getElementById('pause-btn').innerText = '再開 (Space)';
+            } else {
+                isPaused = false;
+                player.playVideo();
+                gameInterval = setInterval(gameLoop, 1000 / 60);
+                document.getElementById('pause-overlay').style.display = 'none';
+                document.getElementById('pause-btn').innerText = '一時停止 (Space)';
+            }
+        }
+
+        function generateNotes() {
+            if (Math.random() < 0.04) {
+                const laneIndex = Math.floor(Math.random() * 4);
+                const laneElement = document.getElementById(`lane-${laneIndex}`);
+                
+                const noteElement = document.createElement('div');
+                noteElement.className = 'note';
+                noteElement.style.top = '0px';
+                laneElement.appendChild(noteElement);
+
+                notes.push({
+                    element: noteElement,
+                    lane: laneIndex,
+                    y: 0
+                });
+            }
+        }
+
+        // 判定テキストを表示する関数
+        function showJudgement(type) {
+            const judgeDisplay = document.getElementById('judge-display');
+            const comboDisplay = document.getElementById('combo-display');
+            
+            judgeDisplay.className = type.toLowerCase();
+            judgeDisplay.innerText = type;
+
+            if (type === 'MISS') {
+                combo = 0;
+                comboDisplay.innerText = '';
+            } else {
+                combo++;
+                comboDisplay.innerText = `${combo} COMBO`;
+            }
+        }
+
+        function gameLoop() {
+            generateNotes();
+
+            for (let i = notes.length - 1; i >= 0; i--) {
+                const note = notes[i];
+                note.y += 5; // ノーツの速度
+                note.element.style.top = note.y + 'px';
+
+                // 判定ラインを通り過ぎてスルーした場合（MISS判定）
+                if (note.y > 570) {
+                    showJudgement('MISS');
+                    note.element.remove();
+                    notes.splice(i, 1);
+                }
+            }
+        }
+
+        // キーボード入力
+        window.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.code === 'Space') {
+                e.preventDefault();
+                togglePause();
+                return;
+            }
+
+            if (isPaused) return;
+
+            const keyIndex = keys.indexOf(e.key.toLowerCase());
+            if (keyIndex !== -1) {
+                for (let i = 0; i < notes.length; i++) {
+                    const note = notes[i];
+                    if (note.lane === keyIndex) {
+                        const distance = Math.abs(note.y - judgeLineY);
+                        
+                        // 細かいタイミング判定
+                        if (distance < 12) {
+                            score += 150;
+                            showJudgement('PERFECT');
+                            note.element.remove();
+                            notes.splice(i, 1);
+                            break;
+                        } else if (distance < 28) {
+                            score += 100;
+                            showJudgement('GREAT');
+                            note.element.remove();
+                            notes.splice(i, 1);
+                            break;
+                        } else if (distance < 45) {
+                            score += 50;
+                            showJudgement('GOOD');
+                            note.element.remove();
+                            notes.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

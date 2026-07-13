@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyper FEVER - Bright Side Rainbow Edition</title>
+    <style>
+        body {
+            margin: 0; background-color: #05050c; color: white;
+            font-family: 'Arial Black', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; overflow: hidden; user-select: none;
+            transition: background 0.4s ease;
+        }
+
+        /* 🌈 フィーバー中：画面の周り全体を最大級に明るいネオンレインボーに！ */
+        body.fever-active-bg {
+            background: linear-gradient(45deg, #ff0055, #00ffcc, #ffcc00, #ff00ff, #00ffff);
+            background-size: 300% 300%;
+            animation: brightSideRainbow 4s linear infinite;
+        }
+        @keyframes brightSideRainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #setup-container {
+            text-align: center; z-index: 100; background: rgba(5, 5, 10, 0.95);
+            padding: 40px; border-radius: 16px; box-shadow: 0 0 40px #ff0055; border: 2px solid #ff0055;
+            display: flex; flex-direction: column; align-items: center; gap: 20px;
+        }
+
+        input[type="text"] {
+            width: 380px; padding: 12px; border-radius: 8px; border: 1px solid #333;
+            background: #111; color: white; font-size: 14px; text-align: center;
+        }
+
+        .diff-selector { display: flex; gap: 15px; margin: 10px 0; }
+        .diff-btn {
+            padding: 12px 24px; border: 2px solid transparent; border-radius: 8px;
+            font-size: 16px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s;
+        }
+        .diff-btn.easy { background: #33cc66; box-shadow: 0 0 10px rgba(51,204,102,0.3); }
+        .diff-btn.normal { background: #3399ff; box-shadow: 0 0 10px rgba(51,153,255,0.3); }
+        .diff-btn.hard { background: #ff3366; box-shadow: 0 0 10px rgba(255,51,102,0.3); }
+        .diff-btn.active { transform: scale(1.1); border-color: #fff; box-shadow: 0 0 25px currentColor; }
+
+        #start-btn {
+            padding: 15px 40px; background: linear-gradient(45deg, #ff0055, #ffcc00);
+            color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 20px;
+            box-shadow: 0 0 20px rgba(255,0,85,0.5); margin-top: 10px;
+        }
+        #start-btn:hover { transform: scale(1.05); }
+
+        #game-container { display: none; position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+
+        /* 🎬 中央の動画再生エリア：幅540pxのレーン部分の真後ろのみに動画を限定し、周りの光と混ざらないように設定 */
+        #youtube-player-wrapper { 
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%); 
+            width: 540px; height: 100%; z-index: 1; pointer-events: none; 
+        }
+        #youtube-player { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.4) contrast(1.2); }
+
+        /* 👑 画面の上の真ん中のFEVER文字 */
+        #fever-indicator {
+            position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
+            font-size: 36px; font-weight: 900; color: rgba(255, 255, 255, 0.15);
+            letter-spacing: 4px; z-index: 25; transition: 0.3s; pointer-events: none;
+        }
+        #game-container.fever-active #fever-indicator {
+            background: linear-gradient(90deg, #ff0055, #ffcc00, #00ffcc, #ff00ff, #ff0055); background-size: 200% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: textRainbow 2s linear infinite;
+        }
+        @keyframes textRainbow { 0% { background-position: 0% center; } 100% { background-position: 200% center; } }
+
+        /* 🕹 レーンエリア：周りが明るくなっても、ここだけはノーツがくっきり見えるよう、黒い透過グラデでガード */
+        #lanes {
+            display: flex; justify-content: space-around; width: 540px; height: 100%;
+            margin: 0 auto; position: relative; z-index: 10;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(5,5,15,0.9));
+            border-left: 3px solid rgba(255, 255, 255, 0.2); border-right: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
+            transition: box-shadow 0.4s ease;
+        }
+        /* フィーバー中は、明るい周りの光がレーン側へネオンのように逆照射されるエフェクト */
+        #game-container.fever-active #lanes {
+            box-shadow: 0 0 80px rgba(255, 255, 255, 0.2), inset 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .lane { width: 25%; height: 100%; position: relative; border-right: 1px solid rgba(255, 255, 255, 0.05); }
+        .lane:last-child { border-right: none; }
+
+        .judge-target { position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%); width: 68px; height: 68px; border-radius: 50%; background: transparent; box-sizing: border-box; }
+        #lane-0 .judge-target { border: 4px solid #ff3366; box-shadow: 0 0 20px #ff3366; }
+        #lane-1 .judge-target { border: 4px solid #3399ff; box-shadow: 0 0 20px #3399ff; }
+        #lane-2 .judge-target { border: 4px solid #33cc66; box-shadow: 0 0 20px #33cc66; }
+        #lane-3 .judge-target { border: 4px solid #ffcc00; box-shadow: 0 0 20px #ffcc00; }
+        .judge-target.active { background: rgba(255, 255, 255, 0.4); transform: translateX(-50%) scale(1.1); }
+        
+        .key-guide { position: absolute; bottom: 65px; width: 100%; text-align: center; font-size: 24px; color: rgba(255, 255, 255, 0.4); }
+
+        .note { position: absolute; width: 62px; height: 62px; left: 50%; transform: translateX(-50%); border-radius: 50%; box-shadow: 0 0 20px rgba(255,255,255,0.6); }
+        .note.color-0 { background: radial-gradient(circle, #ff6699, #ff0055); }
+        .note.color-1 { background: radial-gradient(circle, #66b2ff, #0077ff); }
+        .note.color-2 { background: radial-gradient(circle, #66ff99, #00b33c); }
+        .note.color-3 { background: radial-gradient(circle, #ffeb66, #cca300); }
+
+        #particle-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 15; pointer-events: none; }
+
+        #ui-left { position: absolute; top: 40px; left: 40px; z-index: 20; display: flex; flex-direction: column; gap: 12px; }
+        #score { font-size: 46px; color: #00ffcc; text-shadow: 0 0 20px rgba(0,255,220,0.6); font-family: monospace; }
+        .pause-btn { background: #111; border: 2px solid #ff0055; color: #ff0055; padding: 10px 24px; border-radius: 30px; font-size: 16px; cursor: pointer; font-weight: bold; width: fit-content; }
+        .pause-btn:hover { background: #ff0055; color: white; }
+        
+        #difficulty-badge { font-size: 18px; font-weight: bold; padding: 4px 12px; border-radius: 4px; width: fit-content; }
+        #difficulty-badge.EASY { background: #33cc66; color: white; }
+        #difficulty-badge.NORMAL { background: #3399ff; color: white; }
+        #difficulty-badge.HARD { background: #ff3366; color: white; }
+
+        #ui-right { position: absolute; top: 40px; right: 40px; z-index: 20; }
+        #combo { font-size: 42px; color: #ffcc00; text-shadow: 0 0 15px #ffcc00; }
+
+        #judge-text { position: absolute; top: 44%; width: 100%; text-align: center; font-size: 58px; font-weight: 900; letter-spacing: 6px; text-shadow: 0 0 20px rgba(0,0,0,1); z-index: 20; }
+        #progress-container { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); width: 700px; height: 12px; background: rgba(255,255,255,0.1); border-radius: 6px; z-index: 30; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #00ffff, #ff00ff); }
+
+        #pause-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 50; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(8px); }
+        #pause-overlay h2 { font-size: 64px; color: #ff0055; text-shadow: 0 0 20px #ff0055; }
+        .resume-btn { padding: 15px 40px; background: linear-gradient(45deg, #00ffcc, #0077ff); color: white; border: none; border-radius: 30px; font-size: 22px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="setup-container">
+        <h2>🎶 限界突破FEVER・ブライトサイドレインボー版 🌈</h2>
+        <p>YouTubeのURLを入力してください</p>
+        <input type="text" id="url-input" value="https://www.youtube.com/watch?v=kJQP7kiw5Fk">
+        
+        <p style="margin-bottom: 5px;">難易度を選択してください</p>
+        <div class="diff-selector">
+            <button class="diff-btn easy" onclick="selectDifficulty('EASY', this)">簡単 (EASY)</button>
+            <button class="diff-btn normal active" onclick="selectDifficulty('NORMAL', this)">普通 (NORMAL)</button>
+            <button class="diff-btn hard" onclick="selectDifficulty('HARD', this)">難しい (HARD)</button>
+        </div>
+
+        <button id="start-btn" onclick="loadVideo()">ゲームスタート</button>
+    </div>
+
+    <div id="game-container">
+        <div id="youtube-player-wrapper"><div id="youtube-player"></div></div>
+        <canvas id="particle-canvas"></canvas>
+
+        <div id="fever-indicator">FEVER!</div>
+
+        <div id="lanes">
+            <div class="lane" id="lane-0"><div class="judge-target" id="target-0"></div><div class="key-guide">D</div></div>
+            <div class="lane" id="lane-1"><div class="judge-target" id="target-1"></div><div class="key-guide">F</div></div>
+            <div class="lane" id="lane-2"><div class="judge-target" id="target-2"></div><div class="key-guide">J</div></div>
+            <div class="lane" id="lane-3"><div class="judge-target" id="target-3"></div><div class="key-guide">K</div></div>
+        </div>
+
+        <div id="ui-left">
+            <button class="pause-btn" onclick="togglePause()">⏸ PAUSE</button>
+            <div id="difficulty-badge" class="NORMAL">NORMAL</div>
+            <div id="score">SCORE: 000000</div>
+        </div>
+        <div id="ui-right"><div id="combo">0 COMBO</div></div>
+        
+        <div id="judge-text"></div>
+        <div id="progress-container"><div id="progress-bar"></div></div>
+
+        <div id="pause-overlay">
+            <h2>PAUSED</h2>
+            <button class="resume-btn" onclick="togglePause()">▶ RESUME</button>
+        </div>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        let player, isPlaying = false, isFever = false, score = 0, combo = 0, chart = [], activeNotes = [], particles = [];
+        const keys = ['d', 'f', 'j', 'k'];
+        const keyStates = [false, false, false, false];
+
+        const laneElements = [document.getElementById('lane-0'), document.getElementById('lane-1'), document.getElementById('lane-2'), document.getElementById('lane-3')];
+        const targetElements = [document.getElementById('target-0'), document.getElementById('target-1'), document.getElementById('target-2'), document.getElementById('target-3')];
+        const laneColors = ['#ff3366', '#3399ff', '#33cc66', '#ffcc00'];
+
+        let canvas, ctx, gameHeight = window.innerHeight;
+        const JUDGE_LINE_Y = 130; let targetY = gameHeight - JUDGE_LINE_Y - 34;
+        let lastTapTime = 0, currentBpm = 135, userTaps = [];
+
+        let currentDifficulty = 'NORMAL';
+        let scrollTime = 1.1;
+
+        function selectDifficulty(diff, btnElement) {
+            currentDifficulty = diff;
+            document.querySelectorAll('.diff-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            
+            const badge = document.getElementById('difficulty-badge');
+            badge.innerText = diff; badge.className = diff;
+
+            if (diff === 'EASY') scrollTime = 1.5;
+            else if (diff === 'NORMAL') scrollTime = 1.1;
+            else if (diff === 'HARD') scrollTime = 0.75;
+        }
+
+        window.addEventListener('resize', () => {
+            gameHeight = window.innerHeight; targetY = gameHeight - JUDGE_LINE_Y - 34;
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        });
+
+        function extractVideoId(url) {
+            const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function loadVideo() {
+            const videoId = extractVideoId(document.getElementById('url-input').value);
+            if (!videoId) { alert('URLが無効です'); return; }
+            document.getElementById('setup-container').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            canvas = document.getElementById('particle-canvas'); ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+
+            player = new YT.Player('youtube-player', {
+                videoId: videoId,
+                playerVars: { 'autoplay': 1, 'controls': 0, 'disablekb': 1, 'rel': 0, 'modestbranding': 1, 'iv_load_policy': 3 },
+                events: { 'onReady': (e) => e.target.playVideo(), 'onStateChange': onPlayerStateChange }
+            });
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.PLAYING) {
+                if (chart.length === 0) generateChart(player.getDuration());
+                isPlaying = true; document.getElementById('pause-overlay').style.display = 'none';
+                startGameLoop();
+            } else {
+                isPlaying = false;
+                if (event.data === YT.PlayerState.PAUSED) document.getElementById('pause-overlay').style.display = 'flex';
+            }
+        }
+
+        function togglePause() {
+            if (!player) return;
+            if (isPlaying) player.pauseVideo(); else player.playVideo();
+        }
+
+        function generateChart(duration) {
+            chart = []; const beatInterval = 60 / currentBpm;
+            let densityMultiplier = 1.0;
+            if (currentDifficulty === 'EASY') densityMultiplier = 0.55;
+            if (currentDifficulty === 'HARD') densityMultiplier = 1.3;
+
+            for (let time = 1.5; time < duration - 2.0; time += beatInterval) {
+                let isChorus = (time > duration * 0.3 && time < duration * 0.75);
+                
+                if (Math.random() < densityMultiplier) {
+                    chart.push({ time: time, lane: Math.floor(Math.random() * 4), spawned: false });
+                    if (currentDifficulty === 'HARD' && isChorus && Math.random() < 0.35) {
+                        let secondLane = (chart[chart.length-1].lane + Math.floor(Math.random()*3 + 1)) % 4;
+                        chart.push({ time: time, lane: secondLane, spawned: false });
+                    }
+                }
+
+                if (currentDifficulty !== 'EASY') {
+                    let extraChance = (currentDifficulty === 'HARD') ? 0.6 : 0.3;
+                    if (isChorus && Math.random() < extraChance) {
+                        chart.push({ time: time + (beatInterval / 2), lane: Math.floor(Math.random() * 4), spawned: false });
+                    }
+                }
+            }
+        }
+
+        function adaptBpmToMv() {
+            const now = performance.now();
+            if (lastTapTime !== 0) {
+                const diff = (now - lastTapTime) / 1000;
+                if (diff > 0.2 && diff < 1.5) {
+                    userTaps.push(diff);
+                    if (userTaps.length > 4) {
+                        userTaps.shift();
+                        currentBpm = 60 / (userTaps.reduce((a, b) => a + b) / userTaps.length);
+                        rebuildChartFromCurrentTime();
+                    }
+                }
+            }
+            lastTapTime = now;
+        }
+
+        function rebuildChartFromCurrentTime() {
+            const currentTime = player.getCurrentTime(), duration = player.getDuration();
+            chart = chart.filter(n => n.spawned || n.time < currentTime);
+            const beatInterval = 60 / currentBpm;
+            
+            let densityMultiplier = 1.0;
+            if (currentDifficulty === 'EASY') densityMultiplier = 0.55;
+            if (currentDifficulty === 'HARD') densityMultiplier = 1.3;
+
+            for (let time = currentTime + scrollTime; time < duration - 2.0; time += beatInterval) {
+                let isChorus = (time > duration * 0.3 && time < duration * 0.75);
+                
+                if (Math.random() < densityMultiplier) {
+                    chart.push({ time: time, lane: Math.floor(Math.random() * 4), spawned: false });
+                    if (currentDifficulty === 'HARD' && isChorus && Math.random() < 0.35) {
+                        let secondLane = (chart[chart.length-1].lane + Math.floor(Math.random()*3 + 1)) % 4;
+                        chart.push({ time: time, lane: secondLane, spawned: false });
+                    }
+                }
+                if (currentDifficulty !== 'EASY') {
+                    let extraChance = (currentDifficulty === 'HARD') ? 0.6 : 0.3;
+                    if (isChorus && Math.random() < extraChance) {
+                        chart.push({ time: time + (beatInterval / 2), lane: Math.floor(Math.random() * 4), spawned: false });
+                    }
+                }
+            }
+        }
+
+        function startGameLoop() {
+            if (!isPlaying) return;
+            const currentTime = player.getCurrentTime(), duration = player.getDuration();
+
+            if (duration > 0) document.getElementById('progress-bar').style.width = `${(currentTime / duration) * 100}%`;
+
+            for (let i = 0; i < chart.length; i++) {
+                const noteData = chart[i];
+                if (!noteData.spawned && currentTime >= (noteData.time - scrollTime)) {
+                    createNoteEntity(noteData); noteData.spawned = true;
+                }
+            }
+
+            for (let l = 0; l < 4; l++) {
+                if (keyStates[l]) {
+                    judgeNote(l, true);
+                }
+            }
+
+            for (let i = activeNotes.length - 1; i >= 0; i--) {
+                const note = activeNotes[i];
+                const timeDiff = currentTime - note.targetTime;
+                const progress = (timeDiff + scrollTime) / scrollTime;
+                note.element.style.top = (targetY * progress - 31) + 'px';
+
+                if (timeDiff > 0.16) {
+                    showJudge('MISS', '#ff3333'); resetFever(); combo = 0;
+                    document.getElementById('combo').innerText = '0 COMBO';
+                    note.element.remove(); activeNotes.splice(i, 1);
+                }
+            }
+
+            updateParticles();
+            requestAnimationFrame(startGameLoop);
+        }
+
+        function createNoteEntity(noteData) {
+            const noteEl = document.createElement('div');
+            noteEl.className = `note color-${noteData.lane}`; noteEl.style.top = '-60px';
+            laneElements[noteData.lane].appendChild(noteEl);
+            activeNotes.push({ element: noteEl, lane: noteData.lane, targetTime: noteData.time });
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') { e.preventDefault(); togglePause(); return; }
+            if (!isPlaying) return;
+            const keyIdx = keys.indexOf(e.key.toLowerCase());
+            if (keyIdx !== -1) {
+                if (!keyStates[keyIdx]) {
+                    keyStates[keyIdx] = true;
+                    targetElements[keyIdx].classList.add('active'); 
+                    adaptBpmToMv(); 
+                    judgeNote(keyIdx, false);
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const keyIdx = keys.indexOf(e.key.toLowerCase());
+            if (keyIdx !== -1) {
+                keyStates[keyIdx] = false;
+                targetElements[keyIdx].classList.remove('active');
+            }
+        });
+
+        function judgeNote(laneIndex, isLongPress = false) {
+            const currentTime = player.getCurrentTime();
+            let targetNoteIdx = -1, minTimeDiff = 999;
+
+            for (let i = 0; i < activeNotes.length; i++) {
+                if (activeNotes[i].lane === laneIndex) {
+                    const diff = Math.abs(currentTime - activeNotes[i].targetTime);
+                    if (diff < minTimeDiff) { minTimeDiff = diff; targetNoteIdx = i; }
+                }
+            }
+
+            if (targetNoteIdx !== -1 && minTimeDiff < 0.15) {
+                if (isLongPress && minTimeDiff > 0.06) {
+                    return; 
+                }
+
+                const note = activeNotes[targetNoteIdx];
+                let basePoints = 0;
+
+                const rect = targetElements[laneIndex].getBoundingClientRect();
+                const spawnX = rect.left + rect.width / 2, spawnY = rect.top + rect.height / 2;
+
+                if (minTimeDiff <= 0.04) {
+                    showJudge('PERFECT', '#00ffcc');
+                    basePoints = 100; combo++;
+                    spawnParticles(spawnX, spawnY, laneColors[laneIndex], 25);
+                } else if (minTimeDiff <= 0.09) {
+                    showJudge('GREAT', '#ffcc00');
+                    basePoints = 50; combo++;
+                    spawnParticles(spawnX, spawnY, laneColors[laneIndex], 12);
+                } else {
+                    if (isLongPress) return;
+                    showJudge('BAD', '#ff6600'); resetFever(); combo = 0;
+                }
+
+                if (combo >= 10 && !isFever) activateFever();
+
+                score += (basePoints + Math.min(combo, 25)) * (isFever ? 2 : 1);
+                document.getElementById('score').innerText = `SCORE: ${String(score).padStart(6, '0')}`;
+                document.getElementById('combo').innerText = `${combo} COMBO`;
+
+                note.element.remove(); activeNotes.splice(targetNoteIdx, 1);
+            }
+        }
+
+        function activateFever() {
+            isFever = true;
+            document.getElementById('game-container').classList.add('fever-active');
+            document.body.classList.add('fever-active-bg');
+        }
+
+        function resetFever() {
+            if (isFever) {
+                isFever = false;
+                document.getElementById('game-container').classList.remove('fever-active');
+                document.body.classList.remove('fever-active-bg');
+            }
+        }
+
+        function showJudge(text, color) {
+            const el = document.getElementById('judge-text');
+            el.innerText = text; el.style.color = color;
+        }
+
+        function spawnParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8 - 4,
+                    radius: Math.random() * 4 + 2,
+                    color: color,
+                    alpha: 1,
+                    life: Math.random() * 30 + 20
+                });
+            }
+        }
+
+        function updateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy; p.alpha -= 1 / p.life;
+                if (p.alpha <= 0) { particles.splice(i, 1); continue; }
+
+                ctx.save(); ctx.globalAlpha = p.alpha; ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color; ctx.shadowBlur = 10; ctx.shadowColor = p.color;
+                ctx.fill(); ctx.restore();
+            }
+        }
+    </script>
+</body>
+</html>
