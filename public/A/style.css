@@ -1,0 +1,444 @@
+/* ===========================
+   全体
+=========================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    font-family:"Yu Gothic","Meiryo",sans-serif;
+
+    text-align:center;
+
+    transition:0.5s;
+
+    min-height:100vh;
+
+}
+
+/* ===========================
+   背景
+=========================== */
+
+body.pink{
+    background:linear-gradient(135deg,#ffd6e7,#ffeef5);
+}
+
+body.blue{
+    background:linear-gradient(135deg,#bde9ff,#eefbff);
+}
+
+body.purple{
+    background:linear-gradient(135deg,#dcc8ff,#f4efff);
+}
+
+body.green{
+    background:linear-gradient(135deg,#d4ffd8,#effff1);
+}
+
+body.yellow{
+    background:linear-gradient(135deg,#fff3b3,#fffbe4);
+}
+
+/* ===========================
+   画面
+=========================== */
+
+#startScreen,
+#gameScreen,
+#resultScreen,
+#gameOverScreen{
+
+    width:700px;
+
+    max-width:95%;
+
+    margin:40px auto;
+
+    background:white;
+
+    border-radius:30px;
+
+    padding:35px;
+
+    box-shadow:0 0 20px rgba(0,0,0,0.2);
+
+}
+
+/* ===========================
+   タイトル
+=========================== */
+
+h1{
+
+    color:#ff5d8f;
+
+    margin-bottom:20px;
+
+    font-size:40px;
+
+}
+
+.subtitle{
+
+    font-size:20px;
+
+    margin-bottom:30px;
+
+}
+
+/* ===========================
+   HP
+=========================== */
+
+#hp{
+
+    font-size:40px;
+
+    margin:20px;
+
+}
+
+/* ===========================
+   問題数
+=========================== */
+
+#progress{
+
+    font-size:22px;
+
+    font-weight:bold;
+
+    color:#444;
+
+    margin-bottom:10px;
+
+}
+
+/* ===========================
+   スコア
+=========================== */
+
+#score{
+
+    font-size:20px;
+
+    color:#666;
+
+    margin-bottom:25px;
+
+}
+
+/* ===========================
+   問題
+=========================== */
+
+#question{
+
+    font-size:32px;
+
+    color:#333;
+
+    margin-bottom:30px;
+
+}
+
+/* ===========================
+   メッセージ
+=========================== */
+
+#message{
+
+    margin-top:25px;
+
+    font-size:25px;
+
+    font-weight:bold;
+
+    color:#ff4f6f;
+
+    min-height:40px;
+
+}
+/* ===========================
+   ボタン
+=========================== */
+
+button{
+
+    width:260px;
+
+    padding:15px;
+
+    margin:10px;
+
+    border:none;
+
+    border-radius:15px;
+
+    background:#ff7aa8;
+
+    color:white;
+
+    font-size:20px;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+    font-weight:bold;
+
+}
+
+button:hover{
+
+    transform:scale(1.08);
+
+    background:#ff4f88;
+
+    box-shadow:0 5px 15px rgba(0,0,0,.3);
+
+}
+
+button:active{
+
+    transform:scale(.96);
+
+}
+
+
+/* ===========================
+   スタートボタン
+=========================== */
+
+#startButton{
+
+    margin-top:40px;
+
+    width:320px;
+
+    font-size:26px;
+
+    background:#4CAF50;
+
+}
+
+#startButton:hover{
+
+    background:#38a046;
+
+}
+
+
+/* ===========================
+   背景選択ボタン
+=========================== */
+
+.backgroundButtons{
+
+    margin-top:25px;
+
+    margin-bottom:35px;
+
+}
+
+
+/* ===========================
+   選択肢
+=========================== */
+
+#choices button{
+
+    display:block;
+
+    width:85%;
+
+    margin:15px auto;
+
+    background:#6fc8ff;
+
+    color:white;
+
+    font-size:24px;
+
+}
+
+#choices button:hover{
+
+    background:#3ea9f5;
+
+}
+
+
+/* ===========================
+   RESULT
+=========================== */
+
+#resultText{
+
+    margin-top:30px;
+
+    font-size:34px;
+
+    color:#444;
+
+}
+
+#rank{
+
+    margin-top:30px;
+
+    font-size:70px;
+
+}
+
+
+/* ===========================
+   GAME OVER
+=========================== */
+
+.gameOver{
+
+    font-size:65px;
+
+    color:#ff2222;
+
+    animation:blink .8s infinite;
+
+}
+
+@keyframes blink{
+
+    0%{
+        opacity:1;
+    }
+
+    50%{
+        opacity:.25;
+    }
+
+    100%{
+        opacity:1;
+    }
+
+}
+
+
+/* ===========================
+   正解・不正解
+=========================== */
+
+.correct{
+
+    color:#00aa55;
+
+    font-size:32px;
+
+}
+
+.wrong{
+
+    color:#ff2222;
+
+    font-size:32px;
+
+}
+
+
+/* ===========================
+   ランク色
+=========================== */
+
+.ss{
+
+    color:gold;
+
+}
+
+.s{
+
+    color:#ff9900;
+
+}
+
+.a{
+
+    color:#ff66cc;
+
+}
+
+.b{
+
+    color:#33aa33;
+
+}
+
+.c{
+
+    color:#3399ff;
+
+}
+
+.d{
+
+    color:#666;
+
+}
+
+
+/* ===========================
+   スマホ対応
+=========================== */
+
+@media(max-width:700px){
+
+h1{
+
+    font-size:28px;
+
+}
+
+#question{
+
+    font-size:24px;
+
+}
+
+button{
+
+    width:95%;
+
+    font-size:18px;
+
+}
+
+#rank{
+
+    font-size:50px;
+
+}
+
+.gameOver{
+
+    font-size:45px;
+
+}
+
+}
+/* タイマー */
+
+#timer{
+
+    font-size:28px;
+
+    font-weight:bold;
+
+    color:#ff4f4f;
+
+    margin:20px;
+
+}
