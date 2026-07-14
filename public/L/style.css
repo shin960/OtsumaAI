@@ -1,0 +1,79 @@
+:root {
+  --bg: #fff8e7;
+  --card: #ffffff;
+  --text: #263238;
+  --muted: #687782;
+  --primary: #ff9800;
+  --primary-dark: #f57c00;
+  --green: #2e7d32;
+  --red: #d32f2f;
+  --line: #ffe0a3;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Yu Gothic", "Meiryo", system-ui, sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at top, #fff0bd 0, transparent 26rem), linear-gradient(135deg, var(--bg), #eef9ff);
+}
+.container {
+  width: min(980px, 92vw);
+  margin: 0 auto;
+  padding: 42px 0;
+}
+.hero { text-align: center; margin-bottom: 24px; }
+.tag {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fff3cd;
+  color: #a15c00;
+  font-weight: 800;
+}
+h1 { margin: 0; color: var(--primary); font-size: clamp(2rem, 6vw, 4rem); }
+.hero p { color: var(--muted); line-height: 1.8; font-size: 1.05rem; }
+.card {
+  background: rgba(255, 255, 255, 0.94);
+  padding: clamp(20px, 4vw, 30px);
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  box-shadow: 0 16px 40px rgba(156, 101, 0, 0.13);
+}
+.controls { margin-bottom: 22px; }
+h2 { margin: 0 0 16px; }
+label { display: block; margin: 16px 0 6px; font-weight: 800; }
+select, input {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #d8c7a2;
+  border-radius: 10px;
+  background: #fffefb;
+}
+button {
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px;
+  font-size: 18px;
+  font-weight: 800;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+button:hover { background: var(--primary-dark); transform: translateY(-1px); }
+.sub-button { background: #455a64; }
+.sub-button:hover { background: #263238; }
+.hint { color: var(--muted); font-size: 0.92rem; line-height: 1.7; }
+.result-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.result p { font-size: 1.08rem; line-height: 1.75; margin: 8px 0; }
+.highlight { border-top: 6px solid var(--primary); }
+#safeTime { color: var(--green); font-weight: 800; }
+#alert { color: var(--red); font-weight: 800; }
+.chart-card { grid-column: 1 / -1; }
+canvas { width: 100%; max-height: 360px; }
+@media (max-width: 720px) { .result-grid { grid-template-columns: 1fr; } }
