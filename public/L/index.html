@@ -1,72 +1,89 @@
+
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UVガードナビ | Team L</title>
-  <link rel="stylesheet" href="./style.css">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>UVガードナビ</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link rel="stylesheet" href="style.css">
+
 </head>
+
 <body>
-  <main class="container">
-    <section class="hero">
-      <p class="tag">Team L Web App</p>
-      <h1>☀️ UVガードナビ</h1>
-      <p>肌タイプ・日焼け止めのSPF/PAと現在地のUV指数から、日焼け開始の目安・安全時間帯・UVアラートを表示します。</p>
-    </section>
 
-    <section class="card controls" aria-labelledby="settings-title">
-      <h2 id="settings-title">診断条件</h2>
-      <label for="skinType">肌タイプ</label>
-      <select id="skinType">
-        <option value="1">タイプ1（とても色白）</option>
-        <option value="2">タイプ2（色白）</option>
-        <option value="3" selected>タイプ3（普通）</option>
-        <option value="4">タイプ4（やや色黒）</option>
-        <option value="5">タイプ5（色黒）</option>
-        <option value="6">タイプ6（かなり色黒）</option>
-      </select>
+<div class="container">
 
-      <label for="spf">SPF</label>
-      <input id="spf" type="number" min="1" max="100" value="30">
+<h1>☀️ UVガードナビ</h1>
 
-      <label for="pa">PA</label>
-      <select id="pa">
-        <option value="1">PA+</option>
-        <option value="2">PA++</option>
-        <option value="3">PA+++</option>
-        <option value="4" selected>PA++++</option>
-      </select>
+<div class="card">
 
-      <button id="diagnoseButton" type="button">現在地から診断</button>
-      <button id="sampleButton" type="button" class="sub-button">サンプル地点（東京）で試す</button>
-      <p class="hint">位置情報の許可が必要です。許可できない場合はサンプル地点で動作確認できます。</p>
-    </section>
+<label>肌タイプ</label>
+<select id="skinType">
+<option value="1">タイプ1（とても色白）</option>
+<option value="2">タイプ2（色白）</option>
+<option value="3">タイプ3（普通）</option>
+<option value="4">タイプ4（やや色黒）</option>
+<option value="5">タイプ5（色黒）</option>
+<option value="6">タイプ6（かなり色黒）</option>
+</select>
 
-    <section class="result-grid" aria-live="polite">
-      <article class="result card highlight">
-        <h2>現在のUV情報</h2>
-        <p id="place">-</p>
-        <p id="uv">UV指数：-</p>
-        <p id="danger">危険度：-</p>
-        <p id="time">日焼け開始：-</p>
-      </article>
+<label>SPF</label>
+<input type="number" id="spf" value="30">
 
-      <article class="result card">
-        <h2>今日の安全時間帯</h2>
-        <p id="safeTime">-</p>
-      </article>
+<label>PA</label>
+<select id="pa">
+<option value="1">PA+</option>
+<option value="1.2">PA++</option>
+<option value="1.4">PA+++</option>
+<option value="1.6">PA++++</option>
+</select>
 
-      <article class="result card alert-card">
-        <h2>⚠️ UVアラート</h2>
-        <p id="alert">-</p>
-      </article>
+<button onclick="getLocation()">
+📍 現在地から診断
+</button>
 
-      <article class="result card chart-card">
-        <h2>今日のUV変化</h2>
-        <canvas id="uvChart" width="700" height="320" aria-label="今日のUV指数の折れ線グラフ"></canvas>
-      </article>
-    </section>
-  </main>
-  <script src="./script.js"></script>
+</div>
+
+<div class="result">
+
+<h2>現在のUV情報</h2>
+
+<p id="uv">-</p>
+
+<p id="danger">-</p>
+
+<p id="time">-</p>
+
+<hr>
+
+<h2>🟢 今日の安全時間帯</h2>
+
+<p id="safeTime">-</p>
+
+<hr>
+
+<h2>⚠️ UVアラート</h2>
+
+<p id="alert">-</p>
+
+<hr>
+
+<h2>📈 今日のUV変化</h2>
+
+<canvas id="chart"></canvas>
+
+</div>
+
+</div>
+
+<script src="script.js"></script>
+
 </body>
+
 </html>
