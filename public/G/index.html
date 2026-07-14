@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IQテストゲーム | Team G</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero">
+      <p class="eyebrow">Team G Web App</p>
+      <h1>🧠 IQテストゲーム</h1>
+      <p>Google Colab の入力式クイズを、ブラウザで遊べるレベル制ゲームにしました。正解すると推定IQが上がり、不正解でゲーム終了です。</p>
+    </section>
+
+    <section id="start-screen" class="card screen active">
+      <h2>ルール</h2>
+      <ul>
+        <li>レベル1〜5まで、各レベル2問ずつ出題されます。</li>
+        <li>正解すると <strong>+8</strong>、不正解は <strong>-5</strong> です。</li>
+        <li>不正解になった時点でゲームオーバーです。</li>
+      </ul>
+      <button id="start-button" class="primary-button">ゲームを始める</button>
+    </section>
+
+    <section id="quiz-screen" class="card screen" aria-live="polite">
+      <div class="status-bar">
+        <span id="level-label">レベル 1</span>
+        <span id="score-label">推定IQ 100</span>
+      </div>
+      <div class="progress"><div id="progress-bar"></div></div>
+      <p id="question-count" class="question-count">1 / 10</p>
+      <h2 id="question-text"></h2>
+      <div id="choices" class="choices"></div>
+      <div id="feedback" class="feedback" hidden></div>
+      <button id="next-button" class="secondary-button" hidden>次へ</button>
+    </section>
+
+    <section id="result-screen" class="card screen">
+      <p id="result-icon" class="result-icon">🎉</p>
+      <h2 id="result-title">結果</h2>
+      <p id="result-score" class="result-score"></p>
+      <p id="result-rank" class="result-rank"></p>
+      <button id="restart-button" class="primary-button">もう一度遊ぶ</button>
+    </section>
+  </main>
+  <script src="./script.js"></script>
+</body>
+</html>
