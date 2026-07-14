@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mチーム：ちゃっぴー | ファッション提案AI</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <p class="badge">Mチーム：ちゃっぴー</p>
+      <h1>Fashion Coordinate AI</h1>
+      <p>Iチームの「天気・気温・湿度・体質」判定と、Jチームの「季節・シチュエーション・テイスト別アイテム提案」を組み合わせたファッション提案アプリです。</p>
+    </section>
+
+    <section class="layout">
+      <form id="coordinateForm" class="panel controls">
+        <h2>今日の条件</h2>
+        <div class="grid two">
+          <label>性別
+            <select id="gender">
+              <option>女性</option>
+              <option>男性</option>
+              <option>指定なし</option>
+            </select>
+          </label>
+          <label>体質
+            <select id="thermalType">
+              <option>普通</option>
+              <option>暑がり</option>
+              <option>寒がり</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="grid two">
+          <label>気温 <span id="temperatureLabel">22℃</span>
+            <input id="temperature" type="range" min="-5" max="38" value="22" step="1">
+          </label>
+          <label>湿度 <span id="humidityLabel">55%</span>
+            <input id="humidity" type="range" min="0" max="100" value="55" step="5">
+          </label>
+        </div>
+
+        <div class="grid three">
+          <label>天気
+            <select id="weather">
+              <option>晴れ</option>
+              <option>曇り</option>
+              <option>雨</option>
+              <option>雪</option>
+            </select>
+          </label>
+          <label>季節
+            <select id="season">
+              <option value="auto">気温から自動</option>
+              <option>春</option>
+              <option>夏</option>
+              <option>秋</option>
+              <option>冬</option>
+            </select>
+          </label>
+          <label>シチュエーション
+            <select id="occasion">
+              <option>大学</option>
+              <option>デート</option>
+              <option>買い物</option>
+              <option>旅行</option>
+              <option>仕事</option>
+            </select>
+          </label>
+        </div>
+
+        <label>ファッションテイスト
+          <select id="taste">
+            <option>カジュアル</option>
+            <option>きれいめ</option>
+            <option>フェミニン</option>
+            <option>ストリート</option>
+            <option>モード</option>
+          </select>
+        </label>
+
+        <div class="actions">
+          <button type="submit">コーデを提案する</button>
+          <button id="anotherButton" type="button" class="secondary">別のコーデを見る</button>
+        </div>
+      </form>
+
+      <section class="panel result" aria-live="polite">
+        <div class="result-header">
+          <div>
+            <p class="badge small">おすすめコーデ</p>
+            <h2 id="resultTitle">条件を選択してください</h2>
+          </div>
+          <p id="comfortBadge" class="comfort">体感：-</p>
+        </div>
+
+        <div class="photo-stage">
+          <img id="mainPhoto" src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=1100&q=80" alt="ファッションコーディネートのイメージ写真">
+          <p id="photoCaption">写真候補を含めた提案がここに表示されます。</p>
+        </div>
+
+        <div id="photoGallery" class="photo-gallery" aria-label="コーディネート写真候補"></div>
+
+        <div class="items">
+          <article><h3>トップス</h3><p id="tops">---</p></article>
+          <article><h3>ボトムス</h3><p id="bottoms">---</p></article>
+          <article><h3>靴</h3><p id="shoes">---</p></article>
+          <article><h3>アウター</h3><p id="outer">---</p></article>
+          <article><h3>バッグ</h3><p id="bag">---</p></article>
+          <article><h3>小物</h3><p id="accessory">---</p></article>
+        </div>
+
+        <section class="point-box">
+          <h3>コーデのポイント</h3>
+          <p id="point">条件を選択して「コーデを提案する」を押してください。</p>
+        </section>
+      </section>
+    </section>
+  </main>
+  <script src="./script.js"></script>
+</body>
+</html>
