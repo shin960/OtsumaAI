@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>あつまれ！かめごっちの島 - ハウス限定版</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #cbd5e1;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        /* 外観：家型（ハウス）のゲーム筐体 */
+        .house-console {
+            position: relative;
+            width: 380px;
+            height: 620px;
+            background: #81c784; /* 基調となるグリーンの壁 */
+            border: 8px solid #4caf50;
+            border-radius: 20px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            padding-top: 60px; /* 屋根のスペース */
+            box-sizing: border-box;
+        }
+
+        /* 三角屋根の表現 */
+        .house-console::before {
+            content: "";
+            position: absolute;
+            top: -50px;
+            left: -8px;
+            width: 0;
+            height: 0;
+            border-left: 198px solid transparent;
+            border-right: 198px solid transparent;
+            border-bottom: 50px solid #4caf50;
+            z-index: 1;
+        }
+
+        /* おうちのフレーム（テーマ）別の液晶スタイル */
+        .theme-wood { background: #f5e6d3; border: 6px solid #8b5a2b; color: #4a2700; }
+        .theme-cyber { background: #0f172a; border: 6px solid #3b82f6; color: #38bdf8; }
+        .theme-pink { background: #fff1f2; border: 6px solid #f472b6; color: #db2777; }
+
+        /* ゲームのメイン液晶（中央） */
+        .screen {
+            width: 90%;
+            height: 240px;
+            margin: 0 auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+            position: relative;
+            border-radius: 12px;
+            z-index: 2;
+        }
+
+        /* 上部お世話ボタンエリア */
+        .top-controls {
+            width: 90%;
+            margin: 10px auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            z-index: 2;
+        }
+
+        /* 下部操作エリア（左に十字キー、右にその他ボタン） */
+        .bottom-controls {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        /* 左側の十字キー配置 */
+        .left-dpad {
+            width: 120px;
+            height: 120px;
+            position: relative;
+        }
+
+        /* 右側のサブボタン配置 */
+        .right-buttons {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-left: 15px;
+        }
+
+        /* ステータスバー */
+        .status-container {
+            width: 100%;
+            border-bottom: 1px dashed rgba(0,0,0,0.2);
+            padding-bottom: 4px;
+        }
+        .status-bar, .status-bar-sub {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        /* お部屋エリア */
+        .character-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 8px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+
+        #char-display {
+            font-size: 65px;
+            animation: bounce 0.8s infinite alternate;
+            z-index: 5;
+        }
+
+        /* 配置されたインテリア */
+        .furniture {
+            position: absolute;
+            font-size: 35px;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        #item-bed { bottom: 10px; left: 10px; }
+        #item-tv { top: 10px; right: 10px; }
+        #item-plant { bottom: 10px; right: 10px; }
+        .furniture.placed { opacity: 1; }
+
+        /* フルーツ狩りゲーム画面 */
+        #game-play-view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #a7f3d0; 
+            display: none;
+            z-index: 6;
+        }
+        #controllable-char { position: absolute; font-size: 40px; width: 40px; height: 40px; text-align: center; }
+        #target-fruit { position: absolute; font-size: 30px; width: 30px; height: 30px; }
+
+        /* ステータスアイコン */
+        #sleep-display { position: absolute; right: 10px; top: 5px; font-size: 25px; z-index: 5; }
+        #poop-display { font-size: 25px; position: absolute; bottom: 10px; left: 45%; z-index: 4; }
+
+        /* ショップ画面 */
+        #shop-view {
+            position: absolute;
+            top: 40px;
+            left: 5%;
+            width: 90%;
+            height: 190px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 2px solid #ef6c00;
+            border-radius: 8px;
+            padding: 8px;
+            box-sizing: border-box;
+            z-index: 8;
+            color: #333 !important;
+            overflow-y: auto;
+        }
+        .shop-header { font-size: 13px; font-weight: bold; text-align: center; color: #e65100; background-color: #ffe0b2; padding: 2px; }
+        .shop-list { display: flex; flex-direction: column; gap: 6px; margin-top: 5px; }
+        .shop-item {
+            background-color: #fffde7; border: 1px solid #ffe082; font-size: 11px;
+            font-weight: bold; padding: 6px; cursor: pointer; border-radius: 4px; text-align: left;
+        }
+        .shop-footer { font-size: 11px; text-align: right; font-weight: bold; color: #e65100; margin-top: 5px; }
+
+        /* メッセージボックス */
+        #message-box {
+            font-size: 12px; background-color: rgba(255,255,255,0.9); padding: 6px;
+            border-radius: 6px; text-align: center; min-height: 36px; display: flex;
+            align-items: center; justify-content: center; font-weight: bold; color: #1b5e20;
+            border: 1px solid #2e7d32; box-sizing: border-box; z-index: 10;
+        }
+
+        /* 十字キーのデザイン */
+        .dpad { position: absolute; background-color: #374151; border: 2px solid #1f2937; cursor: pointer; box-shadow: 0 3px #111827; }
+        .dpad:active { box-shadow: 0 1px #111827; transform: translateY(2px); }
+        .dpad-up { width: 34px; height: 38px; top: 0; left: 43px; border-radius: 4px 4px 0 0; }
+        .dpad-down { width: 34px; height: 38px; bottom: 0; left: 43px; border-radius: 0 0 4px 4px; }
+        .dpad-left { width: 38px; height: 34px; top: 43px; left: 0; border-radius: 4px 0 0 4px; }
+        .dpad-right { width: 38px; height: 34px; top: 43px; right: 0; border-radius: 0 4px 4px 0; }
+        .dpad-center { position: absolute; width: 34px; height: 34px; top: 43px; left: 43px; background-color: #374151; z-index: 2; }
+
+        /* 通常ボタン */
+        .game-btn {
+            background-color: #fffde7; border: 2px solid #2e7d32; border-radius: 8px;
+            padding: 8px 0; font-size: 12px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 3px #2e7d32; transition: 0.1s; color: #1b5e20; text-align: center;
+        }
+        .game-btn:active { box-shadow: 0 0px #2e7d32; transform: translateY(3px); }
+        .shop-btn { background-color: #ffe0b2; border-color: #ef6c00; color: #e65100; box-shadow: 0 3px #ef6c00; }
+        #reset-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 180px; background-color: #ff6b6b; color: white; z-index: 20; }
+
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+    </style>
+</head>
+<body>
+
+    <div class="house-console">
+        <!-- 上部ボタンエリア -->
+        <div class="top-controls" id="normal-top-buttons">
+            <button id="feed-btn" class="game-btn">ごはん [Space]</button>
+            <button id="clean-btn" class="game-btn">おそうじ [C]</button>
+            <button id="game-btn" class="game-btn">遊ぶ [Enter]</button>
+        </div>
+
+        <!-- メイン液晶画面 -->
+        <div class="screen theme-wood" id="game-screen">
+            <div class="status-container">
+                <div class="status-bar">
+                    <span>おなか: <span id="hunger-val">100</span>%</span>
+                    <span>💰: <span id="bells-val">50</span>ベル</span>
+                </div>
+                <div class="status-bar-sub">
+                    <span>しんか: <span id="stage-text">たまご</span></span>
+                    <span id="furniture-text">スタイル: ウッド調</span>
+                </div>
+            </div>
+            
+            <div class="character-area" id="main-view">
+                <div id="item-bed" class="furniture">🛏️</div>
+                <div id="item-tv" class="furniture">📺</div>
+                <div id="item-plant" class="furniture">🪴</div>
+
+                <div id="char-display">🥚</div>
+                <div id="sleep-display" class="status-icon"></div>
+                <div id="poop-display"></div>
+            </div>
+
+            <div id="game-play-view">
+                <div id="target-fruit">🍎</div>
+                <div id="controllable-char">🐸</div>
+            </div>
+
+            <div id="shop-view" style="display: none;">
+                <div class="shop-header">🍃 タヌキ商店 🍃</div>
+                <div class="shop-list">
+                    <button class="shop-item" id="buy-bed">🛏️ ふかふかベッド (30ベル)<br>寝ている時のおなかの減りがさらに半分になる</button>
+                    <button class="shop-item" id="buy-tv">📺 レトロなテレビ (60ベル)<br>遊んだ時にもらえるベルが少しアップする</button>
+                    <button class="shop-item" id="buy-plant">🪴 高級な観葉植物 (100ベル)<br>部屋が汚れにくく(うんちが出にくく)なる</button>
+                </div>
+                <div class="shop-footer">所持金: <span id="shop-bells-val">50</span>ベル</div>
+            </div>
+
+            <div id="message-box">お世話してね！</div>
+            <button id="reset-btn" class="game-btn" style="display:none;">データリセット</button>
+        </div>
+
+        <!-- 下部操作エリア（左：十字キー、右：各種機能ボタン） -->
+        <div class="bottom-controls">
+            <div class="left-dpad">
+                <div class="dpad dpad-up" id="press-up"></div>
+                <div class="dpad dpad-down" id="press-down"></div>
+                <div class="dpad dpad-left" id="press-left"></div>
+                <div class="dpad dpad-right" id="press-right"></div>
+                <div class="dpad-center"></div>
+            </div>
+
+            <div class="right-buttons">
+                <button id="light-btn" class="game-btn">電気</button>
+                <button id="shop-toggle-btn" class="game-btn shop-btn">みせ [M]</button>
+                <button id="back-btn" class="game-btn" style="display: none;">おわる [M]</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let petName = "かめごっち";
+        let hunger = 100;
+        let bells = 50;         
+        let poopCount = 0;
+        let age = 0;
+        let isDead = false;
+        let isSleeping = false;
+        let isLightOn = true;
+        let loopCount = 0;
+        let inShop = false;     
+        let inGameMode = false; 
+        let currentTheme = "1";
+
+        let hasBed = false; let hasTv = false; let hasPlant = false;
+        let charX = 150; let charY = 80;
+        let fruitX = 100; let fruitY = 100;
+        let keysPressed = {};
+
+        const hungerVal = document.getElementById('hunger-val');
+        const bellsVal = document.getElementById('bells-val');
+        const shopBellsVal = document.getElementById('shop-bells-val');
+        const stageText = document.getElementById('stage-text');
+        const furnitureText = document.getElementById('furniture-text');
+        const charDisplay = document.getElementById('char-display');
+        const controllableChar = document.getElementById('controllable-char');
+        const targetFruit = document.getElementById('target-fruit');
+        const poopDisplay = document.getElementById('poop-display');
+        const sleepDisplay = document.getElementById('sleep-display');
+        const messageBox = document.getElementById('message-box');
+        const gameScreen = document.getElementById('game-screen');
+        const shopView = document.getElementById('shop-view');
+        const gamePlayView = document.getElementById('game-play-view');
+        const feedBtn = document.getElementById('feed-btn');
+        const cleanBtn = document.getElementById('clean-btn');
+        const gameBtn = document.getElementById('game-btn'); 
+        const lightBtn = document.getElementById('light-btn');
+        const shopToggleBtn = document.getElementById('shop-toggle-btn');
+        const backBtn = document.getElementById('back-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const buyBedBtn = document.getElementById('buy-bed');
+        const buyTvBtn = document.getElementById('buy-tv');
+        const buyPlantBtn = document.getElementById('buy-plant');
+        const itemBed = document.getElementById('item-bed');
+        const itemTv = document.getElementById('item-tv');
+        const itemPlant = document.getElementById('item-plant');
+
+        function saveGame() {
+            if (isDead) return;
+            const saveData = {
+                petName, hunger, bells, poopCount, age, isSleeping, isLightOn,
+                hasBed, hasTv, hasPlant, currentTheme
+            };
+            localStorage.setItem('kamegocchi_save', JSON.stringify(saveData));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('kamegocchi_save');
+            if (saved) {
+                const choice = confirm("セーブデータがみつかりましただなも！\n【OK】つづきから遊ぶ\n【キャンセル】新しくはじめる");
+                if (choice) {
+                    const data = JSON.parse(saved);
+                    petName = data.petName; hunger = data.hunger; bells = data.bells;
+                    poopCount = data.poopCount; age = data.age; isSleeping = data.isSleeping; isLightOn = data.isLightOn;
+                    hasBed = data.hasBed; hasTv = data.hasTv; hasPlant = data.hasPlant;
+                    currentTheme = data.currentTheme || "1";
+                    
+                    applyTheme(currentTheme);
+                    if (hasBed) itemBed.classList.add("placed");
+                    if (hasTv) itemTv.classList.add("placed");
+                    if (hasPlant) itemPlant.classList.add("placed");
+                    if (isSleeping) sleepDisplay.innerText = "💤";
+                    
+                    updatePoopDisplay();
+                    checkEvolution();
+                    updateUI();
+                    messageBox.innerText = `たぬきち「おかえりだなも！ ${petName} が待ってたも！」`;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function applyTheme(themeChoice) {
+            gameScreen.className = "screen";
+            if (themeChoice === "2") { gameScreen.classList.add("theme-cyber"); furnitureText.innerText = "スタイル: ネオン"; } 
+            else if (themeChoice === "3") { gameScreen.classList.add("theme-pink"); furnitureText.innerText = "スタイル: ピンク"; } 
+            else { gameScreen.classList.add("theme-wood"); furnitureText.innerText = "スタイル: ウッド調"; }
+        }
+
+        function initGame() {
+            if (loadGame()) return;
+            currentTheme = prompt("おうちのフレーム（スタイル）をえらんでね！\n1: ナチュラルウッド\n2: サイバーネオン\n3: ゆめかわピンク", "1");
+            applyTheme(currentTheme);
+            const inputName = prompt("ペットの なまえを つけてね！", "かめごっち");
+            if (inputName && inputName.trim() !== "") { petName = inputName.trim(); }
+            messageBox.innerText = "たぬきち「だなも！ " + petName + " のお部屋へようこそだなも！」";
+            updateUI(); saveGame();
+        }
+        
+        function updateUI() {
+            hungerVal.innerText = Math.floor(hunger);
+            bellsVal.innerText = bells; shopBellsVal.innerText = bells;
+        }
+
+        // 1分(60000ms)毎サイクル
+        const gameTimer = setInterval(() => {
+            if (isDead) return;
+            loopCount++;
+
+            if (loopCount % 60 === 0 && stageText.innerText !== "たまご") {
+                if (!isSleeping) {
+                    isSleeping = true; sleepDisplay.innerText = "💤";
+                    messageBox.innerText = petName + " は眠ってしまいました。電気を消してね";
+                    if(inShop) closeShop(); if(inGameMode) endFruitGame();
+                    updateCharacter();
+                } else {
+                    isSleeping = false; sleepDisplay.innerText = "";
+                    messageBox.innerText = isLightOn ? petName + "「よく寝たんだなも！」" : "朝なのに真っ暗だなも！";
+                    updateCharacter();
+                }
+            }
+
+            // 1時間に10%減る計算
+            let decrease = 10 / 60; 
+            if (!isSleeping) { hunger -= decrease; } else { hunger -= hasBed ? (decrease * 0.3) : (decrease * 0.5); }
+            if (hunger < 0) hunger = 0;
+            updateUI();
+
+            let poopChance = hasPlant ? 0.02 : 0.05;
+            if (!isSleeping && hunger > 20 && Math.random() < poopChance && poopCount < 3) {
+                poopCount++; updatePoopDisplay();
+                messageBox.innerText = "あ！ " + petName + " がうんちをしたよ！";
+            }
+
+            if (hunger <= 0) { endGame(petName + " はお腹がすきすぎて天に召された…"); }
+            else if (poopCount >= 3) { endGame("部屋が汚すぎて " + petName + " はどこかへ去ってしまった…"); }
+
+            saveGame();
+        }, 60000); 
+
+        function actionCheck() {
+            if (isDead || inGameMode) return true;
+            if (isSleeping) { messageBox.innerText = petName + " はすやすや眠っています…"; return true; }
+            if (!isLightOn) { messageBox.innerText = "暗くて何もできません。電気をつけてね"; return true; }
+            return false;
+        }
+
+        function triggerFeed() {
+            if (actionCheck()) return;
+            hunger = Math.min(100, hunger + 25); age += 1;
+            messageBox.innerText = "モグモグ…普通のえさは安心の味！";
+            checkEvolution(); updateUI(); saveGame();
+        }
+
+        function triggerClean() {
+            if (isDead || poopCount === 0 || inGameMode) return;
+            if (isSleeping && isLightOn) { messageBox.innerText = "寝ている時はお掃除できません"; return; }
+            poopCount = 0; updatePoopDisplay();
+            messageBox.innerText = "お部屋がピカピカになっただなも！"; saveGame();
+        }
+
+        function triggerGameMenu() {
+            if (actionCheck()) return;
+            const choice = confirm("どっちのゲームにする？\n【OK】フルーツ狩り\n【キャンセル】あっちむいてホイ");
+            if (choice) { startFruitGame(); } else {
+                const playerChoice = confirm("あっちむいてホイ！\n【OK】で右、【キャンセル】で左 を向くよ！");
+                const aiChoice = Math.random() < 0.5;
+                if (playerChoice === aiChoice) {
+                    let winBells = hasTv ? 45 : 30; bells += winBells; 
+                    messageBox.innerText = `勝利！${winBells}ベル ゲットだなも！`;
+                    hunger = Math.min(100, hunger + 5); 
+                } else {
+                    let loseBells = hasTv ? 15 : 10; bells += loseBells; 
+                    messageBox.innerText = `負け…参加賞で${loseBells}ベル もらっただなも！`;
+                }
+                updateUI(); saveGame();
+            }
+        }
+
+        function toggleShop() {
+            if (isDead || inGameMode) return;
+            if (inShop) { closeShop(); return; }
+            if (isSleeping || !isLightOn) { messageBox.innerText = "お店は閉まっていますだなも…"; return; }
+            inShop = true; shopView.style.display = "block"; shopToggleBtn.style.display = "none"; backBtn.style.display = "block";
+            messageBox.innerText = "たぬきち「インテリアを売ってるだなも！」"; updateUI();
+        }
+
+        feedBtn.addEventListener('click', triggerFeed);
+        cleanBtn.addEventListener('click', triggerClean);
+        gameBtn.addEventListener('click', triggerGameMenu);
+
+        function startFruitGame() {
+            inGameMode = true; gamePlayView.style.display = "block";
+            shopToggleBtn.style.display = "none"; backBtn.style.display = "block";
+            messageBox.innerText = "【フルーツ狩り】十字キーかWASD長押しで動くよ！";
+            controllableChar.innerText = charDisplay.innerText;
+            charX = Math.floor(gamePlayView.clientWidth / 2) - 20;
+            charY = Math.floor(gamePlayView.clientHeight / 2) - 20;
+            moveTargetFruit(); drawGame(); requestAnimationFrame(gameLoop);
+        }
+
+        function moveTargetFruit() {
+            const maxWidth = gamePlayView.clientWidth - 30; const maxHeight = gamePlayView.clientHeight - 30;
+            fruitX = Math.floor(Math.random() * maxWidth) + 5; fruitY = Math.floor(Math.random() * maxHeight) + 5;
+            targetFruit.style.left = fruitX + "px"; targetFruit.style.top = fruitY + "px";
+        }
+
+        function drawGame() {
+            controllableChar.style.left = charX + "px"; controllableChar.style.top = charY + "px";
+        }
+
+        window.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase(); keysPressed[e.key] = true; keysPressed[key] = true;
+            if (!inGameMode) {
+                if (e.key === "Enter") triggerGameMenu();
+                if (e.key === " ") { e.preventDefault(); triggerFeed(); }
+                if (key === "c") triggerClean(); if (key === "m") toggleShop();
+            } else { if (key === "m") endFruitGame(); }
+        });
+
+        window.addEventListener('keyup', (e) => { keysPressed[e.key] = false; keysPressed[e.key.toLowerCase()] = false; });
+
+        function gameLoop() {
+            if (!inGameMode) return;
+            const speed = 4; 
+            const maxWidth = gamePlayView.clientWidth - 40; const maxHeight = gamePlayView.clientHeight - 40;
+            if (keysPressed["ArrowUp"] || keysPressed["w"]) charY = Math.max(0, charY - speed);
+            if (keysPressed["ArrowDown"] || keysPressed["s"]) charY = Math.min(maxHeight, charY + speed);
+            if (keysPressed["ArrowLeft"] || keysPressed["a"]) charX = Math.max(0, charX - speed);
+            if (keysPressed["ArrowRight"] || keysPressed["d"]) charX = Math.min(maxWidth, charX + speed);
+            drawGame(); checkFruitCollision(); requestAnimationFrame(gameLoop);
+        }
+
+        function moveCharSingle(dir) {
+            if (!inGameMode) return;
+            const speed = 20; const maxWidth = gamePlayView.clientWidth - 40; const maxHeight = gamePlayView.clientHeight - 40;
+            if (dir === 'up') charY = Math.max(0, charY - speed); if (dir === 'down') charY = Math.min(maxHeight, charY + speed);
+            if (dir === 'left') charX = Math.max(0, charX - speed); if (dir === 'right') charX = Math.min(maxWidth, charX + speed);
+            drawGame(); checkFruitCollision();
+        }
+
+        document.getElementById('press-up').addEventListener('click', () => moveCharSingle('up'));
+        document.getElementById('press-down').addEventListener('click', () => moveCharSingle('down'));
+        document.getElementById('press-left').addEventListener('click', () => moveCharSingle('left'));
+        document.getElementById('press-right').addEventListener('click', () => moveCharSingle('right'));
+
+        function checkFruitCollision() {
+            let distance = Math.sqrt(Math.pow(charX - fruitX, 2) + Math.pow(charY - fruitY, 2));
+            if (distance < 35) {
+                let fruitBells = hasTv ? 15 : 10; bells += fruitBells;
+                messageBox.innerText = `🍎ゲット！(+${fruitBells}ベル)`; updateUI(); moveTargetFruit(); saveGame();
+            }
+        }
+
+        function endFruitGame() {
+            inGameMode = false; gamePlayView.style.display = "none"; shopToggleBtn.style.display = "block"; backBtn.style.display = "none";
+            messageBox.innerText = "楽しかっただなも！"; hunger = Math.min(100, hunger + 10); updateUI(); checkEvolution(); saveGame();
+        }
+
+        lightBtn.addEventListener('click', () => {
+            if (isDead || inGameMode) return;
+            isLightOn = !isLightOn;
+            if (!isLightOn) { gameScreen.style.filter = "brightness(0.4)"; lightBtn.innerText = "電気[消]"; } 
+            else { gameScreen.style.filter = "none"; lightBtn.innerText = "電気[点]"; } saveGame();
+        });
+
+        shopToggleBtn.addEventListener('click', toggleShop);
+        backBtn.addEventListener('click', () => { if (inGameMode) { endFruitGame(); } else if (inShop) { closeShop(); } });
+
+        function closeShop() {
+            inShop = false; shopView.style.display = "none"; shopToggleBtn.style.display = "block"; backBtn.style.display = "none";
+            messageBox.innerText = "たぬきち「ありがとうございましただなも〜！」"; checkEvolution(); saveGame();
+        }
+
+        buyBedBtn.addEventListener('click', () => {
+            if (hasBed) { messageBox.innerText = "配置済みだなも！"; return; }
+            if (bells < 30) { messageBox.innerText = "ベルが足りないだなも…"; return; }
+            bells -= 30; hasBed = true; itemBed.classList.add("placed"); updateUI(); saveGame();
+        });
+
+        buyTvBtn.addEventListener('click', () => {
+            if (hasTv) { messageBox.innerText = "配置済みだなも！"; return; }
+            if (bells < 60) { messageBox.innerText = "ベルが足りないだなも…"; return; }
+            bells -= 60; hasTv = true; itemTv.classList.add("placed"); updateUI(); saveGame();
+        });
+
+        buyPlantBtn.addEventListener('click', () => {
+            if (hasPlant) { messageBox.innerText = "配置済みだなも！"; return; }
+            if (bells < 100) { messageBox.innerText = "ベルが足りないだなも…"; return; }
+            bells -= 100; hasPlant = true; itemPlant.classList.add("placed"); updateUI(); saveGame();
+        });
+
+        function updatePoopDisplay() { poopDisplay.innerText = "💩".repeat(poopCount); }
+        function updateCharacter() { if (!isDead && !isSleeping) checkEvolution(); if(isSleeping) charDisplay.innerText = "💤"; }
+
+        function checkEvolution() {
+            if (isSleeping || inShop || inGameMode) return; 
+            if (age < 3) { stageText.innerText = "たまご"; charDisplay.innerText = "🥚"; }
+            else if (age >= 3 && age < 10) { stageText.innerText = "オタマジャクシ"; charDisplay.innerText = "🐟"; } 
+            else if (age >= 10 && age < 18) { stageText.innerText = "カエル"; charDisplay.innerText = "🐸"; } 
+            else if (age >= 18 && age < 25) { stageText.innerText = "カメ…？"; charDisplay.innerText = "🐢🐸"; } 
+            else if (age >= 25) { stageText.innerText = "完全なるカメ"; charDisplay.innerText = "🐢"; }
+        }
+
+        function endGame(reason) {
+            isDead = true; clearInterval(gameTimer); localStorage.removeItem('kamegocchi_save'); 
+            shopView.style.display = "none"; gamePlayView.style.display = "none";
+            charDisplay.innerText = "🍂"; poopDisplay.innerText = ""; sleepDisplay.innerText = "";
+            stageText.innerText = "おわかれ"; messageBox.innerText = reason; resetBtn.style.display = "block";
+        }
+
+        resetBtn.addEventListener('click', () => { localStorage.removeItem('kamegocchi_save'); location.reload(); });
+        initGame();
+    </script>
+</body>
+</html>
