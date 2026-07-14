@@ -1,0 +1,322 @@
+// -----------------------------
+// コーデデータ
+// -----------------------------
+
+const outfits = {
+
+    春:{
+        tops:["白シャツ","ボーダーTシャツ","薄手ニット","ブラウス"],
+        bottoms:["ワイドデニム","ロングスカート","テーパードパンツ"],
+        shoes:["白スニーカー","ローファー","パンプス"],
+        outer:["カーディガン","トレンチコート","デニムジャケット"],
+        bag:["トートバッグ","ショルダーバッグ"],
+        accessory:["腕時計","ピアス","ネックレス"]
+    },
+
+    夏:{
+        tops:["白Tシャツ","ポロシャツ","ノースリーブ","シアーシャツ"],
+        bottoms:["デニムショートパンツ","ワイドパンツ","ロングスカート"],
+        shoes:["サンダル","白スニーカー","スポーツサンダル"],
+        outer:["なし","UVパーカー"],
+        bag:["キャンバストート","ミニバッグ"],
+        accessory:["サングラス","キャップ"]
+    },
+
+    秋:{
+        tops:["ニット","長袖シャツ","スウェット"],
+        bottoms:["デニム","スラックス","ロングスカート"],
+        shoes:["ローファー","スニーカー","ブーツ"],
+        outer:["カーディガン","ジャケット","トレンチコート"],
+        bag:["レザーバッグ","ショルダーバッグ"],
+        accessory:["腕時計","ストール"]
+    },
+
+    冬:{
+        tops:["タートルネック","厚手ニット","スウェット"],
+        bottoms:["裏起毛パンツ","デニム","ロングスカート"],
+        shoes:["ブーツ","スニーカー"],
+        outer:["ダウンジャケット","ロングコート","チェスターコート"],
+        bag:["トートバッグ","レザーバッグ"],
+        accessory:["マフラー","手袋","ニット帽"]
+    }
+
+};
+
+
+// -----------------------------
+
+function randomItem(array){
+
+    return array[Math.floor(Math.random()*array.length)];
+
+}
+
+// -----------------------------
+
+function recommend(){
+
+    const temp = Number(document.getElementById("temp").value);
+
+    const season = document.getElementById("season").value;
+
+    const weather = document.getElementById("weather").value;
+
+    const scene = document.getElementById("scene").value;
+
+    const style = document.getElementById("style").value;
+
+
+    const data = outfits[season];
+
+    let tops = randomItem(data.tops);
+
+    let bottoms = randomItem(data.bottoms);
+
+    let shoes = randomItem(data.shoes);
+
+    let outer = randomItem(data.outer);
+
+    let bag = randomItem(data.bag);
+
+    let accessory = randomItem(data.accessory);
+
+
+    // 気温による調整
+
+    if(temp>=30){
+
+        outer="なし";
+
+    }
+
+    if(temp<=10){
+
+        outer="ダウンジャケット";
+
+        accessory="マフラー";
+
+    }
+
+    // 雨の日
+
+    if(weather=="雨"){
+
+        shoes="防水スニーカー";
+
+    }
+
+    // デート
+
+    if(scene=="デート"){
+
+        bag="小さめショルダーバッグ";
+
+    }
+
+    // 仕事
+
+    if(scene=="仕事"){
+
+        shoes="ローファー";
+
+        bag="レザーバッグ";
+
+    }
+
+
+    // 表示
+
+    document.getElementById("tops").innerText=tops;
+
+    document.getElementById("bottoms").innerText=bottoms;
+
+    document.getElementById("shoes").innerText=shoes;
+
+    document.getElementById("outer").innerText=outer;
+
+    document.getElementById("bag").innerText=bag;
+
+    document.getElementById("accessory").innerText=accessory;
+
+
+    // コメント
+
+    let comment="";
+
+    if(temp>=30){
+
+        comment+="暑いので通気性の良い服装がおすすめです。 ";
+
+    }
+
+    else if(temp>=20){
+
+        comment+="過ごしやすい気温なので軽めのコーデがおすすめです。 ";
+
+    }
+
+    else if(temp>=10){
+
+        comment+="朝晩は冷えるため羽織りを持ちましょう。 ";
+
+    }
+
+    else{
+
+        comment+="しっかり防寒対策をしましょう。 ";
+
+    }
+
+
+    if(weather=="雨"){
+
+        comment+="雨なので防水の靴や折りたたみ傘があると安心です。 ";
+
+    }
+
+    if(scene=="大学"){
+
+        comment+="歩きやすさを重視したカジュアルコーデです。 ";
+
+    }
+
+    if(scene=="デート"){
+
+        comment+="清潔感を意識したきれいめコーデです。 ";
+
+    }
+
+    if(scene=="旅行"){
+
+        comment+="長時間歩いても疲れにくい服装です。 ";
+
+    }
+
+    comment+="テイスト：「"+style+"」をイメージしています。";
+
+    document.getElementById("comment").innerText=comment;
+
+
+    drawChart(temp);
+
+}
+
+
+// -----------------------------
+
+let chart;
+
+
+// -----------------------------
+
+function drawChart(temp){
+
+    const ctx=document.getElementById("radarChart");
+
+    if(chart){
+
+        chart.destroy();
+
+    }
+
+    let comfort=80;
+
+    let fashion=90;
+
+    let warmth=60;
+
+    let movement=85;
+
+    let season=90;
+
+
+    if(temp<=10){
+
+        warmth=100;
+
+    }
+
+    if(temp>=30){
+
+        warmth=30;
+
+        comfort=95;
+
+    }
+
+
+    chart=new Chart(ctx,{
+
+        type:"radar",
+
+        data:{
+
+            labels:[
+
+                "おしゃれ",
+
+                "快適さ",
+
+                "防寒",
+
+                "動きやすさ",
+
+                "季節との相性"
+
+            ],
+
+            datasets:[{
+
+                label:"コーデ評価",
+
+                data:[
+
+                    fashion,
+
+                    comfort,
+
+                    warmth,
+
+                    movement,
+
+                    season
+
+                ],
+
+                backgroundColor:"rgba(255,105,180,0.3)",
+
+                borderColor:"#ff4f81",
+
+                borderWidth:2
+
+            }]
+
+        },
+
+        options:{
+
+            responsive:true,
+
+            scales:{
+
+                r:{
+
+                    min:0,
+
+                    max:100,
+
+                    ticks:{
+
+                        stepSize:20
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    });
+
+}

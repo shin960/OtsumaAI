@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fashion Coordinate AI</title>
+
+    <link rel="stylesheet" href="アプリ開発.css">
+ 
+</head>
+
+<body>
+
+<header>
+    <h1>👗 Fashion Coordinate AI</h1>
+    <p>気温や天気に合わせて今日のコーデを提案します</p>
+</header>
+
+<div class="container">
+
+    <div class="input-box">
+
+        <h2>今日の情報</h2>
+
+        <label>🌡 気温（℃）</label>
+        <input type="number" id="temp" placeholder="例：25">
+
+        <label>☀ 天気</label>
+        <select id="weather">
+            <option value="晴れ">晴れ</option>
+            <option value="曇り">曇り</option>
+            <option value="雨">雨</option>
+            <option value="雪">雪</option>
+        </select>
+
+        <label>🍂 季節</label>
+        <select id="season">
+            <option value="春">春</option>
+            <option value="夏">夏</option>
+            <option value="秋">秋</option>
+            <option value="冬">冬</option>
+        </select>
+
+        <label>📅 シチュエーション</label>
+        <select id="scene">
+            <option value="大学">大学</option>
+            <option value="デート">デート</option>
+            <option value="買い物">買い物</option>
+            <option value="旅行">旅行</option>
+            <option value="仕事">仕事</option>
+        </select>
+
+        <label>🎀 ファッションテイスト</label>
+        <select id="style">
+            <option value="カジュアル">カジュアル</option>
+            <option value="きれいめ">きれいめ</option>
+            <option value="フェミニン">フェミニン</option>
+            <option value="ストリート">ストリート</option>
+        </select>
+
+        <button onclick="recommend()">コーデを提案する</button>
+        <button onclick="recommend()">別のコーデを見る</button>
+
+    </div>
+
+    <div class="result-box">
+
+        <h2>おすすめコーデ</h2>
+
+        <div class="card">
+            <h3>👕 トップス</h3>
+            <p id="tops">---</p>
+        </div>
+
+        <div class="card">
+            <h3>👖 ボトムス</h3>
+            <p id="bottoms">---</p>
+        </div>
+
+        <div class="card">
+            <h3>👟 靴</h3>
+            <p id="shoes">---</p>
+        </div>
+
+        <div class="card">
+            <h3>🧥 アウター</h3>
+            <p id="outer">---</p>
+        </div>
+
+        <div class="card">
+            <h3>👜 バッグ</h3>
+            <p id="bag">---</p>
+        </div>
+
+        <div class="card">
+            <h3>💍 小物</h3>
+            <p id="accessory">---</p>
+        </div>
+
+        <div class="advice">
+
+            <h2>💡 コーデのポイント</h2>
+
+            <p id="comment">
+                条件を選択して「コーデを提案する」を押してください。
+            </p>
+
+        </div>
+
+        <div class="chart">
+
+            <canvas id="radarChart"></canvas>
+
+        </div>
+
+    </div>
+
+</div>
+
+<footer>
+
+    <p>Fashion Coordinate AI</p>
+
+</footer>
+
+<script src="java"></script>
+
+</body>
+</html>
