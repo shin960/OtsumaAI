@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>お天気コーディネーター | Team I</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="container">
+    <section class="intro">
+      <p class="tag">Team I Web App</p>
+      <h1>🌤️ 服装コーディネート提案アプリ</h1>
+      <p>性別・服の系統・体質・天気を入力すると、気温と湿度を考慮した今日のコーディネートを提案します。</p>
+    </section>
+
+    <section class="app-card">
+      <form id="coordinate-form" class="panel">
+        <h2>👤 ユーザー登録情報</h2>
+        <label>性別
+          <select id="gender">
+            <option>女性</option>
+            <option>男性</option>
+            <option>指定なし</option>
+          </select>
+        </label>
+        <label>服の系統
+          <select id="style-type">
+            <option>カジュアル</option>
+            <option>きれいめ・オフィスカジュアル</option>
+            <option>ストリート</option>
+            <option>モード</option>
+            <option>フェミニン/トラッド</option>
+          </select>
+        </label>
+        <label>体質
+          <select id="thermal-type">
+            <option>普通</option>
+            <option>暑がり</option>
+            <option>寒がり</option>
+          </select>
+        </label>
+
+        <h2>🌦️ 今日の天気・環境</h2>
+        <label>天気
+          <select id="weather">
+            <option>晴れ</option>
+            <option>曇り</option>
+            <option>雨</option>
+            <option>雪</option>
+          </select>
+        </label>
+        <label>気温 <span id="temperature-value">20℃</span>
+          <input id="temperature" type="range" min="-10" max="40" value="20" step="1">
+        </label>
+        <label>湿度 <span id="humidity-value">50%</span>
+          <input id="humidity" type="range" min="0" max="100" value="50" step="5">
+        </label>
+        <button type="submit">コーディネートをチェック</button>
+      </form>
+
+      <section class="result panel" aria-live="polite">
+        <h2>👗 提案結果</h2>
+        <div id="result-text" class="result-text">条件を選んでボタンを押すと、提案テキストが表示されます。</div>
+        <img id="result-image" src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=700&q=80" alt="コーディネートイメージ">
+      </section>
+    </section>
+  </main>
+  <script src="./script.js"></script>
+</body>
+</html>
